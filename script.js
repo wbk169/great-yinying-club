@@ -139,3 +139,38 @@ function renderRow(container, player, rank) {
 }
 
 loadRankings();
+
+
+// ✨【新增】科技感游標控制邏輯
+const cursorDot = document.querySelector('[data-cursor-dot]');
+const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+window.addEventListener("mousemove", function (e) {
+    const posX = e.clientX;
+    const posY = e.clientY;
+
+    // 小點直接跟隨
+    cursorDot.style.left = `${posX}px`;
+    cursorDot.style.top = `${posY}px`;
+
+    // 大圈圈延遲跟隨 (增加動畫效果)
+    cursorOutline.animate({
+        left: `${posX}px`,
+        top: `${posY}px`
+    }, { duration: 500, fill: "forwards" });
+});
+
+// 當滑鼠移到連結或表格時，游標變大
+document.addEventListener('mouseover', (e) => {
+    if (e.target.tagName === 'TR' || e.target.tagName === 'H3') {
+        cursorOutline.style.width = '60px';
+        cursorOutline.style.height = '60px';
+        cursorOutline.style.backgroundColor = 'rgba(0, 243, 255, 0.1)';
+    }
+});
+
+document.addEventListener('mouseout', () => {
+    cursorOutline.style.width = '40px';
+    cursorOutline.style.height = '40px';
+    cursorOutline.style.backgroundColor = 'transparent';
+});

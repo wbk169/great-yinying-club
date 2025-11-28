@@ -1,128 +1,226 @@
-/* --- 基礎設定與字體：深色模式啟動 --- */
-body {
-    font-family: 'Consolas', 'Microsoft JhengHei', sans-serif; /* 使用等寬字體增添科技感 */
-    margin: 0;
-    padding: 0;
-    background-color: #121212; /* 深黑色背景 */
-    color: #E0E0E0; /* 淺灰色文字 */
-    line-height: 1.6;
+/* --- 全局設定 --- */
+:root {
+    --neon-blue: #00f3ff;
+    --neon-purple: #bc13fe;
+    --neon-gold: #ffd700;
+    --bg-dark: #050505;
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
 }
 
-/* --- 頂部標頭：未來感設計 --- */
+body {
+    font-family: 'Rajdhani', 'Consolas', sans-serif; /* 建議引入科技感字體 */
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-dark);
+    color: #fff;
+    overflow-x: hidden;
+    cursor: none; /* 隱藏預設游標，使用我們自製的 */
+}
+
+/* --- 動態背景網格 --- */
+.bg-grid {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200vw;
+    height: 200vh;
+    background-image: 
+        linear-gradient(var(--glass-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--glass-border) 1px, transparent 1px);
+    background-size: 50px 50px;
+    transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+    animation: grid-move 20s linear infinite;
+    z-index: -1;
+    opacity: 0.2;
+}
+
+@keyframes grid-move {
+    0% { transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px); }
+    100% { transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px); }
+}
+
+/* --- 自定義游標 --- */
+.cursor-dot,
+.cursor-outline {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.cursor-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--neon-blue);
+}
+
+.cursor-outline {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--neon-blue);
+    transition: width 0.2s, height 0.2s, background-color 0.2s;
+}
+
+/* --- Header：故障雜訊效果 (Glitch) --- */
 header {
-    background-color: #1F1F1F; /* 略淺的灰色，與背景區隔 */
-    padding: 40px 20px;
+    padding: 60px 20px;
     text-align: center;
-    border-bottom: 2px solid #00FFFF; /* 螢光青色底部邊框 */
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); /* 輕微的霓虹光影效果 */
+    position: relative;
+    border-bottom: 1px solid var(--glass-border);
+    background: radial-gradient(circle at center, rgba(0, 243, 255, 0.1) 0%, transparent 70%);
 }
 
 h1 {
-    font-size: 3em;
-    margin-bottom: 5px;
-    letter-spacing: 5px; /* 拉開字母間距，專業感 */
-    color: #FFFFFF;
-    /* 增加標題閃爍動畫，營造動態效果 */
-    animation: pulse 2s infinite alternate; 
+    font-size: 4em;
+    margin: 0;
+    color: #fff;
+    text-transform: uppercase;
+    position: relative;
+    display: inline-block;
+    text-shadow: 2px 2px var(--neon-purple), -2px -2px var(--neon-blue);
+    animation: glitch-skew 1s infinite linear alternate-reverse;
 }
 
-@keyframes pulse {
-    from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.7); }
-    to { text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF; }
+/* Glitch 動畫關鍵影格 */
+@keyframes glitch-skew {
+    0% { transform: skew(0deg); }
+    20% { transform: skew(-2deg); }
+    40% { transform: skew(2deg); }
+    60% { transform: skew(0deg); }
+    80% { transform: skew(1deg); }
+    100% { transform: skew(0deg); }
 }
 
-/* --- 主要內容區 --- */
+header p {
+    font-size: 1.2em;
+    color: var(--neon-blue);
+    letter-spacing: 5px;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+
+/* --- 主內容區：玻璃擬態卡片 --- */
 main {
-    max-width: 1400px;
-    margin: 50px auto;
-    padding: 0 30px;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
 }
 
 h2 {
     text-align: center;
-    color: #00FFFF;
-    margin-bottom: 40px;
-    font-size: 1.8em;
-    border-bottom: 1px dashed #333;
-    padding-bottom: 15px;
+    font-weight: 300;
+    margin-bottom: 50px;
+    border-left: 3px solid var(--neon-blue);
+    display: inline-block;
+    padding-left: 15px;
 }
 
-/* --- 排名卡片與分團設計：科技感容器 --- */
 .team-section {
-    margin-bottom: 30px;
-    background-color: #1F1F1F;
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #333;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* 平滑轉場效果 */
+    margin-bottom: 40px;
+    /* 玻璃擬態核心代碼 */
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
 }
 
-/* 動態效果：滑鼠懸停時放大並產生藍色光影 */
 .team-section:hover {
-    transform: translateY(-5px); 
-    box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4); 
-    border-color: #00FFFF;
+    transform: translateY(-5px) scale(1.01);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
 }
 
-/* 團標題：使用背景漸變和邊框增強專業度 */
+/* 卡片掃光特效 */
+.team-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+    transition: 0.5s;
+}
+
+.team-section:hover::before {
+    left: 100%;
+    transition: 0.5s;
+}
+
 .team-title {
-    padding: 15px 20px;
-    font-size: 1.6em;
-    border-radius: 8px 8px 0 0;
-    margin: -20px -20px 20px -20px; /* 擴展到卡片邊緣 */
-    text-align: left;
-    color: #FFFFFF;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+    font-size: 1.8em;
+    margin-top: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
 }
 
-/* 團別顏色 (使用更具科技感的冷色調) */
-.tier-1 { background: linear-gradient(90deg, #8A2BE2, #4B0082); /* 藍紫色漸變 - 頂級 */ }
-.tier-2 { background: linear-gradient(90deg, #1E90FF, #00BFFF); /* 天藍色漸變 */ }
-.tier-3 { background: linear-gradient(90deg, #00CED1, #20B2AA); /* 綠松石漸變 */ }
-.tier-4 { background: linear-gradient(90deg, #FFD700, #DAA520); /* 金色漸變 (保留高階感) */ }
-.tier-5 { background: linear-gradient(90deg, #FF6347, #FF4500); /* 亮紅色漸變 */ }
+.team-title::before {
+    content: '///';
+    color: var(--neon-blue);
+    margin-right: 10px;
+    font-size: 0.8em;
+}
 
-/* --- 排名表格：清晰、專業、簡潔 --- */
+/* --- 表格樣式 --- */
 .ranking-table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
+    border-collapse: separate;
+    border-spacing: 0 8px; /* 讓表格行之間有空隙 */
+}
+
+.ranking-table th {
     text-align: left;
-}
-
-.ranking-table th, .ranking-table td {
-    padding: 12px 15px;
-    border: 1px solid #333; /* 使用淺邊框 */
-}
-
-.ranking-table thead th {
-    background-color: #00FFFF; /* 螢光藍標頭 */
-    color: #121212; /* 黑色字體，高對比度 */
+    color: #888;
     text-transform: uppercase;
+    font-size: 0.8em;
     letter-spacing: 1px;
+    padding: 10px 20px;
 }
 
 .ranking-table tbody tr {
-    transition: background-color 0.3s ease;
+    background: rgba(255, 255, 255, 0.03);
+    transition: 0.3s;
 }
 
-.ranking-table tbody tr:nth-child(even) {
-    background-color: #252525; /* 讓偶數行略深一點 */
-}
-
-/* 動態效果：滑鼠懸停時高亮，螢光藍色 */
 .ranking-table tbody tr:hover {
-    background-color: #3A3A3A;
-    box-shadow: inset 3px 0 0 #00FFFF; /* 左側藍色高亮線條 */
+    background: rgba(0, 243, 255, 0.1);
+    transform: scale(1.01);
+}
+
+.ranking-table td {
+    padding: 15px 20px;
+    border: none;
+    border-left: 2px solid transparent; /* 預留邊框位置 */
+}
+
+.ranking-table td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.ranking-table td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    text-align: right;
 }
 
 /* --- 頁尾 --- */
 footer {
     text-align: center;
-    padding: 20px;
-    background-color: #1F1F1F;
-    color: #888;
-    margin-top: 50px;
-    border-top: 1px solid #333;
+    padding: 50px 0;
+    color: #555;
+    font-size: 0.9em;
 }
