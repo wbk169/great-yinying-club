@@ -118,8 +118,12 @@ function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     const logs = [
-        "INITIALIZING SYSTEM...", "LOADING KERNEL...", "CONNECTING TO MLB DB...",
-        "VERIFYING CREDENTIALS...", "ACCESS GRANTED.", "SYSTEM ONLINE."
+        "INITIALIZING SYSTEM...",
+        "LOADING KERNEL MODULES...",
+        "CONNECTING TO MLB DATABASE...",
+        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", // ✨ 這裡加回來了！
+        "ACCESS GRANTED.",
+        "SYSTEM ONLINE."
     ];
     let lineIndex = 0;
     function typeLine() {
@@ -252,3 +256,35 @@ function renderRow(container, player, rank) {
 }
 
 loadRankings();
+// ... (保留上面所有的程式碼)
+
+loadRankings();
+
+// ==========================================
+// 🚀 特效 4：實時數據監控 (System Monitor)
+// ==========================================
+function updateSysMonitor() {
+    const monitor = document.getElementById('sysMonitor');
+    if (!monitor) return;
+
+    // 模擬數據跳動
+    const fps = Math.floor(Math.random() * (60 - 55 + 1)) + 55; // FPS 55-60
+    const ping = Math.floor(Math.random() * (30 - 10 + 1)) + 10; // Ping 10-30ms
+    const mem = Math.floor(Math.random() * (45 - 30 + 1)) + 30; // Mem 30-45%
+    
+    // 獲取當前時間 HH:MM:SS
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+
+    monitor.innerHTML = `
+        SYS_TIME: ${timeStr}<br>
+        FPS: ${fps}<br>
+        PING: ${ping}ms<br>
+        MEM: ${mem}%<br>
+        STATUS: ONLINE
+    `;
+}
+
+// 每秒更新一次數據
+setInterval(updateSysMonitor, 1000);
+updateSysMonitor();
