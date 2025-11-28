@@ -29,18 +29,32 @@ async function loadRankings() {
 
             // --- 變數初始化 ---
             let teamId = null;
-            let displayRank = `#${rank}`; // 預設顯示排名
-            let rankColor = '#00FFFF';    // 預設排名顏色 (螢光藍)
-            let nameStyle = '';           // 預設名字樣式
+            
+            // 預設顯示內容
+            let displayRank = `#${rank}`;           // 排名欄位
+            let displayScore = `(PR: ${score})`;    // 分數欄位
+            
+            // 預設樣式
+            let rankColor = '#00FFFF';    // 排名顏色 (預設螢光藍)
+            let nameStyle = '';           // 名字樣式
+            let scoreStyle = 'color:#aaa; font-size:0.9em;'; // 分數樣式 (預設灰色)
+            
             let isLeader = false;         // 標記是否為團長
 
             // 👑【團長霸王條款】
             if (name === '陰帝') {
                 teamId = TEAM_CONFIG[1].id;       // 強制去一團
-                displayRank = '👑 大陰團長';      // 強制改頭銜
-                rankColor = '#FFD700';            // 金色字體
+                
+                // --- 這裡依照您的要求修改 ---
+                displayRank = '#1';               // 排名強制顯示 #1
+                displayScore = '👑 大陰團長';      // 強度欄位顯示頭銜
+                
+                // 設定尊爵金色樣式
+                rankColor = '#FFD700';            
                 nameStyle = 'color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-weight: bold; font-size: 1.1em;';
-                isLeader = true;                  // 標記為團長 (重要!)
+                scoreStyle = 'color: #FFD700; font-weight: bold; letter-spacing: 1px;'; // 頭銜也變金色
+                
+                isLeader = true;                  // 標記為團長
             } 
             // 🛡️【一般平民分團邏輯】
             else {
@@ -56,21 +70,21 @@ async function loadRankings() {
                 const tr = document.createElement('tr');
                 tr.style.animation = `fadeIn 0.5s ease forwards`;
                 
-                // 設定表格內容
+                // 填入 HTML
                 tr.innerHTML = `
                     <td style="font-weight:bold; color:${rankColor}; white-space:nowrap;">${displayRank}</td>
                     <td style="${nameStyle}">${name}</td>
-                    <td style="color:#aaa; font-size:0.9em;">(PR: ${score})</td>
+                    <td style="${scoreStyle}">${displayScore}</td>
                 `;
 
                 const tableBody = document.getElementById(teamId);
 
-                // ⚡ 關鍵修改：如果是團長，用 prepend 插隊到第一排；其他人用 appendChild 排後面
+                // ⚡ 如果是團長，用 prepend 插隊到第一排
                 if (isLeader) {
                     tableBody.prepend(tr); 
-                    // 為了凸顯團長，給整行加個深金色背景微光
-                    tr.style.background = 'linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent)';
-                    tr.style.borderLeft = '3px solid #FFD700';
+                    // 給整行加個深金色背景微光，並加上左側金邊
+                    tr.style.background = 'linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent)';
+                    tr.style.borderLeft = '4px solid #FFD700';
                 } else {
                     tableBody.appendChild(tr);
                 }
