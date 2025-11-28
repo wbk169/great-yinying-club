@@ -1,17 +1,15 @@
 // 設定檔案路徑
 const CSV_FILE_PATH = 'rankings.csv';
 
-// 🟢【NPC 設定區】🟢
+// NPC 設定區
 const NPC_LIST = {
     1: [], 
     2: [],
-    // ✨ 修正：三團改為 2 位 NPC
     3: ['未入團強力路人1', '未入團強力路人2'], 
     4: ['未入團強力路人5'], 
     5: []
 };
 
-// 團別與容器設定
 const TEAM_CONFIG = {
     1: { name: '大陰帝國', id: 'team1-body' },
     2: { name: '大陰帝國-稽查菊', id: 'team2-body' },
@@ -42,7 +40,7 @@ function hackEffect(element) {
 }
 
 // ==========================================
-// 🚀 特效 2：磁吸按鈕 (修正版)
+// 🚀 特效 2：磁吸按鈕
 // ==========================================
 function initMagnetic() {
     if (window.innerWidth < 768) return; 
@@ -51,12 +49,8 @@ function initMagnetic() {
         magnet.classList.add('magnetic-target'); 
         magnet.addEventListener('mousemove', (e) => {
             const rect = magnet.getBoundingClientRect();
-            // 計算滑鼠相對於元素中心的距離
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
-            
-            // ✨ 修正：大幅降低移動係數 (0.3 -> 0.05)
-            // 這樣只會微微移動，不會飛出去
             magnet.style.transform = `translate(${x * 0.05}px, ${y * 0.1}px)`;
         });
         magnet.addEventListener('mouseleave', () => {
@@ -66,23 +60,36 @@ function initMagnetic() {
 }
 
 // ==========================================
-// 🚀 特效 3：滾動偵測
+// 🚀 特效 3：滾動偵測 (進場動畫 & 標題解碼)
 // ==========================================
 function initScrollEffects() {
     const progressBar = document.getElementById('progressBar');
     const titles = document.querySelectorAll('.team-title');
+    const sections = document.querySelectorAll('.team-section');
     
-    const observer = new IntersectionObserver((entries) => {
+    // 標題解碼偵測
+    const titleObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 hackEffect(entry.target); 
-                observer.unobserve(entry.target); 
+                titleObserver.unobserve(entry.target); 
             }
         });
     }, { threshold: 0.5 });
+    titles.forEach(title => titleObserver.observe(title));
 
-    titles.forEach(title => observer.observe(title));
+    // ✨ 新增：卡片進場動畫 (Scroll Reveal)
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('reveal-active');
+                sectionObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    sections.forEach(section => sectionObserver.observe(section));
 
+    // 捲動條
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -147,7 +154,7 @@ function runBootSequence() {
 }
 
 // ==========================================
-// 🚀 主程式：讀取 CSV 並渲染
+// 主程式
 // ==========================================
 async function loadRankings() {
     runBootSequence(); 
@@ -182,18 +189,16 @@ async function loadRankings() {
             const tableBody = document.getElementById(TEAM_CONFIG[teamNum].id);
             if (!tableBody) continue;
             
-            tableBody.innerHTML = ''; // 清空防止重複
+            tableBody.innerHTML = ''; 
 
             let currentTeamCount = 0; 
             const MAX_PER_TEAM = 20;  
 
-            // A. 團長
             if (teamNum === 1 && leaderData) {
                 renderRow(tableBody, leaderData, globalRankCounter);
                 currentTeamCount++; globalRankCounter++;
             }
 
-            // B. NPC
             const npcs = NPC_LIST[teamNum] || [];
             npcs.forEach(npcName => {
                 if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) {
@@ -202,7 +207,6 @@ async function loadRankings() {
                 }
             });
 
-            // C. 自願降團
             if (teamNum === 5) {
                 while (demotedList.length > 0) {
                     renderRow(tableBody, demotedList.shift(), globalRankCounter);
@@ -210,7 +214,6 @@ async function loadRankings() {
                 }
             }
 
-            // D. 排隊名單
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) {
                 renderRow(tableBody, waitingList.shift(), globalRankCounter);
                 currentTeamCount++; globalRankCounter++;
@@ -218,9 +221,12 @@ async function loadRankings() {
         }
 
         initCursor();
-        initScrollEffects(); 
         updateSysMonitor();
-        setTimeout(initMagnetic, 1000); 
+        // 延遲啟動滾動偵測，確保 DOM 已經渲染完成
+        setTimeout(() => {
+            initScrollEffects();
+            initMagnetic();
+        }, 100);
 
         const today = new Date();
         document.getElementById('update-date').textContent = 
@@ -233,9 +239,9 @@ async function loadRankings() {
 }
 
 function renderRow(container, player, rank) {
+    // 這裡不需要 fade-in 了，因為外層 Card 有 reveal 動畫，內部保持乾淨
     const tr = document.createElement('tr');
-    tr.style.animation = `fadeIn 0.5s ease forwards`;
-
+    
     let displayRank = `#${rank}`;
     let displayScore = `(PR: ${player.score})`;
     let rankColor = '#00FFFF'; 
@@ -267,32 +273,32 @@ function renderRow(container, player, rank) {
     container.appendChild(tr);
 }
 
-// ✨ 修正：游標對齊與效能優化
+// ✨ 修正：游標與十字線邏輯
 function initCursor() {
     if (window.innerWidth < 768) return;
     const cursorDot = document.querySelector('[data-cursor-dot]');
     const cursorOutline = document.querySelector('[data-cursor-outline]');
+    const crossX = document.querySelector('.crosshair-x');
+    const crossY = document.querySelector('.crosshair-y');
     
-    // 預設將游標隱藏，直到滑鼠移動才顯示，避免開場出現在左上角
-    cursorDot.style.opacity = 0;
-    cursorOutline.style.opacity = 0;
+    cursorDot.style.opacity = 0; cursorOutline.style.opacity = 0;
 
     window.addEventListener("mousemove", function (e) {
         const posX = e.clientX;
         const posY = e.clientY;
         
-        cursorDot.style.opacity = 1;
-        cursorOutline.style.opacity = 1;
+        cursorDot.style.opacity = 1; cursorOutline.style.opacity = 1;
 
-        // 小點直接定位
         cursorDot.style.left = `${posX}px`;
         cursorDot.style.top = `${posY}px`;
         
-        // ✨ 修正：縮短延遲時間到 100ms (原本是 400ms)，這樣圈圈跟得比較緊，不會歪
-        cursorOutline.animate({
-            left: `${posX}px`,
-            top: `${posY}px`
-        }, { duration: 100, fill: "forwards" });
+        cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 100, fill: "forwards" });
+
+        // 移動十字線
+        if(crossX && crossY) {
+            crossX.style.top = `${posY}px`;
+            crossY.style.left = `${posX}px`;
+        }
     });
 }
 
