@@ -1,157 +1,155 @@
-/* --- 全局變數 --- */
+/* --- 核心變數 --- */
 :root {
     --neon-cyan: #00f3ff;
     --neon-blue: #0066ff;
     --neon-gold: #ffd700;
     --neon-red: #ff2a2a;
     --bg-dark: #050505;
-    --panel-bg: rgba(10, 15, 20, 0.85); /* 稍微不透明一點，提升閱讀性 */
+    --panel-bg: rgba(10, 15, 20, 0.85);
     --border-color: rgba(0, 243, 255, 0.3);
 }
 
 body {
     font-family: 'Rajdhani', 'Consolas', sans-serif;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     background-color: var(--bg-dark);
     color: #fff;
-    overflow-x: hidden;
-    cursor: none;
+    overflow-x: hidden; /* 防止特效超出 */
+    cursor: none; /* 隱藏預設滑鼠 */
 }
 
-/* ✨ 特效：賽博卷軸 (Custom Scrollbar) */
-::-webkit-scrollbar {
-    width: 8px;
-}
-::-webkit-scrollbar-track {
-    background: #000; 
-}
-::-webkit-scrollbar-thumb {
-    background: var(--neon-blue); 
-    border-radius: 4px;
-    box-shadow: 0 0 10px var(--neon-blue);
-}
-::-webkit-scrollbar-thumb:hover {
+/* 2. 賽博卷軸 (Cyberpunk Scrollbar) */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { 
     background: var(--neon-cyan); 
+    border-radius: 3px; 
+    box-shadow: 0 0 10px var(--neon-cyan); 
 }
 
-/* 背景與特效層 */
-.bg-particles {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
-    background-image: radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-                      radial-gradient(2px 2px at 40px 70px, #fff, transparent),
-                      radial-gradient(2px 2px at 50px 160px, #fff, transparent),
-                      radial-gradient(2px 2px at 90px 40px, #fff, transparent);
-    background-size: 200px 200px;
-    opacity: 0.3;
-    animation: particles-move 60s linear infinite;
+/* 3. 頂部能量進度條 */
+.scroll-progress-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 10001;
+    background: rgba(255, 255, 255, 0.1);
 }
-@keyframes particles-move { 0% { background-position: 0 0; } 100% { background-position: 0 1000px; } }
+.scroll-progress-bar {
+    height: 100%; width: 0%;
+    background: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--neon-cyan);
+    transition: width 0.1s;
+}
 
-.scanlines {
+/* 5. 數位噪點 (Digital Noise) */
+.noise-overlay {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    background-size: 100% 4px, 6px 100%;
-    z-index: 9000; pointer-events: none; opacity: 0.6;
+    pointer-events: none; z-index: 9005; opacity: 0.05;
+    background: repeating-radial-gradient(#fff 0 0.0001%, #000 0 0.0002%) 50% 0/2500px 2500px,
+                repeating-conic-gradient(#fff 0 0.0001%, #000 0 0.0002%) 60% 60%/2500px 2500px;
+    background-blend-mode: difference;
+    animation: noise 0.2s infinite alternate;
+}
+@keyframes noise { 0% { transform: translate(0,0); } 100% { transform: translate(1px, 1px); } }
+
+/* 8. 聚光燈 (Spotlight) - 照亮背景 */
+.spotlight-mask {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 9001;
+    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), transparent 100px, rgba(0,0,0,0.4) 100%);
+    /* 這裡使用反向邏輯：滑鼠周圍是亮的(透明)，周圍是暗的 */
 }
 
-/* ✨ 特效：HUD 戰術邊角 (固定在螢幕四角) */
+/* 1. HUD 戰術邊角 */
 .hud-corner {
-    position: fixed;
-    width: 40px;
-    height: 40px;
-    border: 2px solid var(--neon-cyan);
-    z-index: 9998;
-    pointer-events: none;
-    opacity: 0.8;
+    position: fixed; width: 30px; height: 30px;
+    border: 2px solid var(--neon-cyan); z-index: 9998; pointer-events: none; opacity: 0.8;
 }
-.hud-top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
-.hud-top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; }
-.hud-bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; }
-.hud-bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
-
-/* 游標 */
-.cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; }
-.cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; transition: 0.1s; pointer-events: none; }
-
-/* Header */
-header {
-    padding: 80px 20px; text-align: center; border-bottom: 1px solid var(--border-color);
-    background: linear-gradient(180deg, rgba(0, 243, 255, 0.05) 0%, transparent 100%);
+.hud-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+.hud-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+.hud-bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+.hud-br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+/* 增加 HUD 數據裝飾 */
+.hud-corner::after {
+    content: 'DATA'; font-size: 8px; position: absolute; color: var(--neon-cyan); font-family: monospace;
 }
-h1 {
-    font-size: 5em; margin: 0; color: #fff; letter-spacing: 8px;
-    text-shadow: 0 0 20px var(--neon-cyan);
-    animation: glitch-skew 3s infinite linear alternate-reverse;
-}
-@keyframes glitch-skew {
-    0% { transform: skew(0deg); } 20% { transform: skew(-1deg); } 
-    40% { transform: skew(1deg); } 60% { transform: skew(0deg); } 
-    100% { transform: skew(0deg); }
-}
-header p { color: var(--neon-cyan); letter-spacing: 6px; margin-top: 20px; }
+.hud-tl::after { top: 5px; left: 5px; } .hud-br::after { bottom: 5px; right: 5px; }
 
-/* Main */
-main { max-width: 1300px; margin: 60px auto; padding: 0 30px; }
-h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 50px; }
+/* 4. 雷達掃描 (Radar) */
+.radar-container {
+    position: fixed; bottom: 30px; right: 30px; width: 100px; height: 100px;
+    border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 50%;
+    z-index: 9997; pointer-events: none;
+    background: radial-gradient(circle, rgba(0, 243, 255, 0.05) 0%, transparent 70%);
+}
+.radar-scan {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(0, 243, 255, 0.5) 30deg, transparent 31deg);
+    animation: radar-spin 4s linear infinite;
+}
+.radar-dot {
+    position: absolute; width: 4px; height: 4px; background: var(--neon-red); border-radius: 50%;
+    top: 30%; left: 70%; opacity: 0;
+    box-shadow: 0 0 5px var(--neon-red);
+    animation: radar-blip 4s infinite 1s;
+}
+@keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes radar-blip { 0% { opacity: 0; } 20% { opacity: 1; } 40% { opacity: 0; } 100% { opacity: 0; } }
 
-/* ✨ 修正後：平面卡片 + 全息掃光 */
+/* 9. 打字機標題 (Typewriter) 樣式 */
+.typewriter h1 {
+    overflow: hidden; white-space: nowrap; border-right: 3px solid var(--neon-cyan);
+    width: 0; animation: typing 3s steps(30, end) forwards, blink-caret 0.75s step-end infinite;
+}
+@keyframes typing { from { width: 0 } to { width: 100% } }
+@keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--neon-cyan); } }
+
+/* 10. 故障邊框 (Glitch Border) */
 .team-section {
-    margin-bottom: 60px;
+    position: relative; margin-bottom: 60px; padding: 40px;
     background: var(--panel-bg);
+    border: 1px solid var(--border-color);
     clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
-    border-left: 5px solid var(--border-color);
-    padding: 40px;
-    position: relative;
-    transition: transform 0.3s ease, border-color 0.3s ease;
-    overflow: hidden; /* 確保掃光不出界 */
+    transition: transform 0.1s; /* 加快反應給磁吸用 */
+    /* 故障邊框動畫 */
+    animation: border-flicker 4s infinite;
+}
+@keyframes border-flicker {
+    0%, 95% { border-color: var(--border-color); box-shadow: none; }
+    96% { border-color: var(--neon-red); box-shadow: 0 0 10px var(--neon-red), inset 0 0 10px var(--neon-red); }
+    97% { border-color: var(--neon-blue); }
+    100% { border-color: var(--border-color); }
 }
 
-/* 掃光特效層 */
-.team-section::after {
-    content: "";
-    position: absolute;
-    top: 0; left: -150%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.2), transparent);
-    transform: skewX(-25deg);
-    transition: 0s;
-}
+/* 7. 磁吸按鈕/標題 (Magnetic) - 樣式輔助 */
+.magnetic-target { display: inline-block; transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
 
-.team-section:hover {
-    transform: translateY(-5px); /* 輕微上浮 */
-    border-left-color: var(--neon-cyan);
-}
-.team-section:hover::after {
-    left: 150%;
-    transition: 0.7s ease-in-out; /* 快速掃過 */
-}
-
-.team-title { font-size: 2em; color: #fff; margin-bottom: 30px; display: flex; align-items: center; }
+/* 原本的基礎樣式 (保留) */
+.bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.3; pointer-events: none; }
+.scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.6; }
+header { padding: 80px 20px; text-align: center; border-bottom: 1px solid var(--border-color); background: linear-gradient(180deg, rgba(0, 243, 255, 0.05) 0%, transparent 100%); }
+h1 { font-size: 5em; margin: 0; color: #fff; letter-spacing: 5px; text-shadow: 0 0 20px var(--neon-cyan); display: inline-block; }
+header p { color: var(--neon-cyan); letter-spacing: 6px; margin-top: 20px; }
+main { max-width: 1300px; margin: 60px auto; padding: 0 30px; }
+.team-title { font-size: 2em; color: #fff; margin-bottom: 30px; display: flex; align-items: center; cursor: default; }
 .team-title::before { content: ''; width: 15px; height: 15px; background: var(--neon-cyan); margin-right: 15px; box-shadow: 0 0 10px var(--neon-cyan); }
-
-/* 表格 */
 .ranking-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; }
 .ranking-table th { text-align: left; color: #666; padding: 10px 20px; }
 .ranking-table tbody tr { background: rgba(255, 255, 255, 0.02); transition: 0.2s; }
 .ranking-table tbody tr:hover { background: rgba(0, 243, 255, 0.15); transform: translateX(10px); box-shadow: -5px 0 0 var(--neon-cyan); }
 .ranking-table td { padding: 18px 20px; }
 .hacker-text { font-family: 'Consolas', monospace; cursor: crosshair; }
-
-/* 啟動畫面 */
 #boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: flex; align-items: center; padding: 20px; }
 #terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; }
 .blink-cursor::after { content: '█'; animation: blink 0.8s infinite; margin-left: 5px; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
 footer { border-top: 1px solid var(--border-color); background: #000; padding: 40px; text-align: center; color: #444; }
+.cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; }
+.cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; transition: 0.1s ease-out; pointer-events: none; }
 
-/* 手機適配 */
+/* Mobile RWD */
 @media (max-width: 768px) {
-    .hud-corner { display: none; } /* 手機畫面太小，隱藏 HUD */
-    .cursor-dot, .cursor-outline { display: none; }
-    h1 { font-size: 2.5em; }
-    .team-section:hover { transform: none; } /* 手機取消懸停上浮 */
+    .hud-corner, .cursor-dot, .cursor-outline, .spotlight-mask, .radar-container, .noise-overlay { display: none; } /* 手機隱藏高效能特效 */
+    h1 { font-size: 2.5em; animation: none; border-right: none; width: auto; white-space: normal; }
+    .typewriter h1 { animation: none; width: auto; border: none; }
+    .team-section { animation: none; }
 }

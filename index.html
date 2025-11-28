@@ -8,18 +8,29 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="hud-corner hud-top-left"></div>
-    <div class="hud-corner hud-top-right"></div>
-    <div class="hud-corner hud-bottom-left"></div>
-    <div class="hud-corner hud-bottom-right"></div>
+    <div class="scroll-progress-container">
+        <div class="scroll-progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="radar-container">
+        <div class="radar-scan"></div>
+        <div class="radar-dot"></div>
+    </div>
+
+    <div class="hud-corner hud-tl"></div>
+    <div class="hud-corner hud-tr"></div>
+    <div class="hud-corner hud-bl"></div>
+    <div class="hud-corner hud-br"></div>
+
+    <div class="noise-overlay"></div>
+    <div class="spotlight-mask"></div>
+
     <div id="boot-screen">
         <div id="terminal-text" class="blink-cursor"></div>
     </div>
     <div class="cursor-dot" data-cursor-dot></div>
     <div class="cursor-outline" data-cursor-outline></div>
-
     <div class="bg-particles"></div>
-
     <div class="scanlines"></div>
     <header>
         <h1>🦅 大陰帝國俱樂部 2025 ⚾</h1>
