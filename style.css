@@ -7,7 +7,7 @@
     --neon-red: #ff2a2a;
     --neon-green: #00ff7f;
     --bg-dark: #050505;
-    --panel-bg: rgba(10, 15, 20, 0.95); /* 提高不透明度 */
+    --panel-bg: rgba(10, 15, 20, 0.95);
     --border-color: rgba(0, 243, 255, 0.3);
 }
 
@@ -21,17 +21,17 @@ body {
     touch-action: manipulation;
     user-select: none; -webkit-user-select: none;
 }
-body.game-active { overflow: hidden; } /* 遊戲中鎖定捲軸 */
+body.game-active { overflow: hidden; }
 @media (pointer: fine) { body { cursor: none; } }
 
-/* 基礎 UI 組件 */
+/* 捲軸 */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #000; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple)); border-radius: 3px; }
 .scroll-progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 10001; background: rgba(255, 255, 255, 0.1); }
 .scroll-progress-bar { height: 100%; width: 0%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transition: width 0.1s; }
 
-/* 背景特效 */
+/* 背景與特效 */
 .bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background-image: radial-gradient(2px 2px at 20px 30px, #fff, transparent), radial-gradient(2px 2px at 40px 70px, #fff, transparent); background-size: 200px 200px; opacity: 0.3; animation: particles-move 60s linear infinite; }
 @keyframes particles-move { 0% { background-position: 0 0; } 100% { background-position: 0 1000px; } }
 .scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.4; }
@@ -39,8 +39,9 @@ body.game-active { overflow: hidden; } /* 遊戲中鎖定捲軸 */
 .crosshair-x { top: 0; left: 0; width: 100vw; height: 1px; }
 .crosshair-y { top: 0; left: 0; width: 1px; height: 100vh; }
 
-/* 網頁排版 */
-.sys-monitor { position: fixed; bottom: 20px; right: 20px; font-family: 'Consolas', monospace; font-size: 0.8em; color: var(--neon-cyan); text-align: right; z-index: 9997; pointer-events: none; line-height: 1.5; text-shadow: 0 0 5px var(--neon-cyan); border-right: 2px solid var(--neon-cyan); padding-right: 10px; }
+/* 🌟 右下角 FPS 監控 (保持在最底部) */
+.sys-monitor { position: fixed; bottom: 10px; right: 10px; font-family: 'Consolas', monospace; font-size: 0.7em; color: var(--neon-cyan); text-align: right; z-index: 9997; pointer-events: none; line-height: 1.5; text-shadow: 0 0 5px var(--neon-cyan); border-right: 2px solid var(--neon-cyan); padding-right: 10px; }
+
 .hud-corner { position: fixed; width: 30px; height: 30px; border: 2px solid var(--neon-cyan); z-index: 9998; pointer-events: none; opacity: 0.8; }
 .hud-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
 .hud-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
@@ -60,20 +61,33 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 .team-title { font-size: 2em; margin-bottom: 30px; display: inline-flex; align-items: center; color: #fff; text-shadow: 0 0 10px currentColor; }
 .team-title::before { content: ''; width: 15px; height: 15px; margin-right: 15px; background-color: currentColor; box-shadow: 0 0 10px currentColor; }
 
+/* Tier Colors */
 .tier-1-theme .team-title { color: var(--neon-gold); } .tier-1-theme { border-left-color: var(--neon-gold); }
 .tier-2-theme .team-title { color: var(--neon-cyan); } .tier-2-theme { border-left-color: var(--neon-cyan); }
 .tier-3-theme .team-title { color: var(--neon-green); } .tier-3-theme { border-left-color: var(--neon-green); }
 .tier-4-theme .team-title { color: var(--neon-purple); } .tier-4-theme { border-left-color: var(--neon-purple); }
 .tier-5-theme .team-title { color: var(--neon-red); } .tier-5-theme { border-left-color: var(--neon-red); }
 
+/* 表格樣式 */
 .ranking-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; min-width: 600px; }
 .ranking-table th { text-align: left; color: #ccc; background: rgba(255,255,255,0.05); padding: 15px 20px; letter-spacing: 1px; }
 .ranking-table tbody tr { background: rgba(255, 255, 255, 0.02); transition: 0.1s; }
-.ranking-table tbody tr:hover { background: rgba(255, 255, 255, 0.1); transform: translateX(5px); text-shadow: 1px 0 rgba(255, 42, 42, 0.7), -1px 0 rgba(0, 102, 255, 0.7); }
+
+/* 🌟 強效 RGB 故障特效 (Hover時) */
+.ranking-table tbody tr:hover {
+    background: rgba(0, 243, 255, 0.15) !important;
+    transform: translateX(10px) !important;
+    /* 紅藍色差 */
+    text-shadow: 2px 0 var(--neon-red), -2px 0 var(--neon-blue) !important;
+    box-shadow: -4px 0 0 var(--neon-cyan) !important;
+    z-index: 10; position: relative;
+}
 .ranking-table td { padding: 18px 20px; color: #eee; }
+
+/* 角色樣式 */
 .row-leader { background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent) !important; border-left: 4px solid var(--neon-gold); }
-.row-leader .rank, .row-leader .name, .row-leader .score { color: var(--neon-gold); font-weight: bold; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
-.row-npc { border-left: 3px solid var(--neon-green); } .row-npc .name, .row-npc .score { color: var(--neon-green); font-weight: bold; }
+.row-leader .rank, .row-leader .name, .row-leader .score { color: var(--neon-gold); font-weight: bold; text-shadow: 0 0 8px rgba(255,215,0,0.8); }
+.row-npc { border-left: 3px solid var(--neon-green); } .row-npc .name, .row-npc .score { color: var(--neon-green); font-weight: bold; text-shadow: 0 0 5px rgba(0,255,127,0.5); }
 .row-demoted { border-left: 3px solid var(--neon-red); }
 .demoted-tag { display: inline-block; border: 1px solid var(--neon-red); color: var(--neon-red); padding: 1px 6px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
 .rank { font-weight: bold; color: var(--neon-cyan); white-space: nowrap; }
@@ -82,18 +96,17 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 
 footer { border-top: 1px solid var(--border-color); background: #000; padding: 40px; text-align: center; color: #444; }
 .cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; }
-.cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background-color 0.2s; opacity: 0; }
+.cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, background-color 0.2s; opacity: 0; }
 
-#boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: flex; align-items: center; padding: 20px; }
-#terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; }
-.blink-cursor::after { content: '█'; animation: blink 0.8s infinite; margin-left: 5px; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-/* 🌟 V14.0 遊戲介面 (戰術商店) */
+/* 🌟 遊戲 UI (修復重疊) */
 #game-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9995; pointer-events: auto; display: none; cursor: crosshair; touch-action: none; }
 
+/* 強制將按鈕容器上移，避開 FPS */
 .game-ui-container {
-    position: fixed !important; bottom: 20px !important; right: 20px !important; top: auto !important; left: auto !important;
+    position: fixed !important; 
+    bottom: 100px !important; /* 🌟 這裡修正了高度 */
+    right: 20px !important; 
+    top: auto !important; left: auto !important;
     z-index: 10002; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
 }
 
@@ -107,7 +120,7 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 .cy-btn:active { transform: scale(0.95); background: var(--neon-cyan); color: #000; }
 .cy-btn.danger { border-color: var(--neon-red); color: var(--neon-red); }
 .cy-btn.danger:active { background: var(--neon-red); color: #000; }
-.cy-btn.shop { border-color: var(--neon-gold); color: var(--neon-gold); } /* 商店按鈕 */
+.cy-btn.shop { border-color: var(--neon-gold); color: var(--neon-gold); }
 .cy-btn.shop:active { background: var(--neon-gold); color: #000; }
 
 .game-score-board {
@@ -117,45 +130,19 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 }
 body.game-active main, body.game-active header { filter: blur(8px) brightness(0.2); pointer-events: none; transition: 0.5s; }
 
-/* 🌟 全螢幕商店模態視窗 */
-.shop-modal {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(0, 0, 0, 0.95); z-index: 10020;
-    display: none; justify-content: center; align-items: center;
-    backdrop-filter: blur(10px);
-}
-.shop-container {
-    width: 90%; max-width: 1000px;
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;
-    padding: 20px; background: rgba(0, 20, 40, 0.8); border: 2px solid var(--neon-cyan);
-    box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
-}
-.shop-header {
-    grid-column: 1 / -1; text-align: center; color: var(--neon-gold); font-size: 2em;
-    margin-bottom: 20px; text-transform: uppercase; letter-spacing: 5px; border-bottom: 1px solid var(--neon-gold);
-}
-.shop-card {
-    background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border-color); padding: 15px;
-    text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
-    touch-action: manipulation;
-}
+.shop-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 10020; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+.shop-container { width: 90%; max-width: 1000px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; padding: 20px; background: rgba(0, 20, 40, 0.8); border: 2px solid var(--neon-cyan); box-shadow: 0 0 50px rgba(0, 243, 255, 0.1); }
+.shop-header { grid-column: 1 / -1; text-align: center; color: var(--neon-gold); font-size: 2em; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 5px; border-bottom: 1px solid var(--neon-gold); }
+.shop-card { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border-color); padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; touch-action: manipulation; }
 .shop-card:hover { border-color: var(--neon-cyan); background: rgba(0, 243, 255, 0.1); transform: translateY(-5px); }
 .shop-card:active { transform: scale(0.98); }
 .shop-card h3 { color: #fff; margin: 5px 0; font-size: 1.2em; }
-.shop-card p { color: #888; font-size: 0.8em; margin-bottom: 10px; height: 30px; } /* 固定高度說明 */
+.shop-card p { color: #888; font-size: 0.8em; margin-bottom: 10px; height: 30px; }
 .shop-card .cost { color: var(--neon-gold); font-weight: bold; font-size: 1.2em; display: block; margin-top: 5px; }
 .shop-card .level { position: absolute; top: 5px; right: 5px; font-size: 0.7em; color: var(--neon-cyan); background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 3px; }
-.shop-close-btn {
-    grid-column: 1 / -1; margin-top: 20px; padding: 15px; background: var(--neon-red); color: #000;
-    border: none; font-weight: bold; font-size: 1.2em; cursor: pointer; text-transform: uppercase;
-}
+.shop-close-btn { grid-column: 1 / -1; margin-top: 20px; padding: 15px; background: var(--neon-red); color: #000; border: none; font-weight: bold; font-size: 1.2em; cursor: pointer; text-transform: uppercase; }
 
-.integrity-container {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    width: 300px; height: 20px; border: 1px solid var(--neon-red);
-    background: rgba(0,0,0,0.8); z-index: 10005; display: none;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 10px) 100%, 0 100%, 0 5px);
-}
+.integrity-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 300px; height: 20px; border: 1px solid var(--neon-red); background: rgba(0,0,0,0.8); z-index: 10005; display: none; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 10px) 100%, 0 100%, 0 5px); }
 .integrity-bar { width: 100%; height: 100%; background: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); transition: width 0.3s; }
 .shield-bar { background: var(--neon-cyan) !important; box-shadow: 0 0 10px var(--neon-cyan) !important; }
 .integrity-text { position: absolute; top: -25px; width: 100%; text-align: center; color: var(--neon-red); font-weight: bold; letter-spacing: 2px; font-size: 0.9em; }
@@ -170,6 +157,9 @@ body.game-active main, body.game-active header { filter: blur(8px) brightness(0.
 .game-msg { position: absolute; color: #fff; font-weight: bold; font-family: 'Consolas', sans-serif; pointer-events: none; animation: floatUp 1s forwards; text-shadow: 0 0 5px #fff; z-index: 10006;}
 @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
+#boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: flex; align-items: center; padding: 20px; }
+#terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; }
+
 @media (max-width: 768px) {
     .hud-corner, .cursor-dot, .cursor-outline, .sys-monitor, .crosshair-line { display: none; } 
     h1 { font-size: 2.5em; white-space: normal; }
@@ -177,8 +167,10 @@ body.game-active main, body.game-active header { filter: blur(8px) brightness(0.
     .team-section { padding: 20px; opacity: 1; transform: none; overflow-x: auto; }
     .ranking-table td { padding: 12px 10px; font-size: 0.9em; }
     .game-score-board { position: fixed; top: 60px; left: 10px; font-size: 1.2em; border: none; padding: 5px; background: none; text-shadow: 0 0 5px var(--neon-gold); }
-    .game-ui-container { bottom: 20px; right: 10px; }
-    .integrity-container { width: 200px; }
+    
+    /* 🌟 手機版按鈕也上移 */
+    .game-ui-container { bottom: 120px; right: 10px; }
+    
     .shop-container { grid-template-columns: repeat(2, 1fr); padding: 10px; gap: 10px; }
     .team-title { background: none !important; -webkit-text-fill-color: #fff !important; color: #fff !important; text-shadow: none !important; display: block !important; font-size: 1.5em !important; margin-bottom: 15px !important; }
     .tier-1-theme .team-title { color: var(--neon-gold) !important; -webkit-text-fill-color: var(--neon-gold) !important; }

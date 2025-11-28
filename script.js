@@ -9,9 +9,6 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
-// ... (省略網站特效代碼：hackEffect, initMagnetic, initScrollEffects, updateSysMonitor, runBootSequence, initCursor, loadRankings, renderRow - 這些保持 V9.1 不變，請保留！) ...
-// ⚠️ 實際貼上時，請保留上方網站邏輯，以下是遊戲邏輯的替換
-
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
 function hackEffect(element) {
     let iterations = 0; const originalText = element.dataset.value || element.innerText; 
@@ -57,9 +54,27 @@ function updateSysMonitor() {
 }
 setInterval(updateSysMonitor, 1000);
 function runBootSequence() {
+    const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
-    if (!bootScreen) return;
-    setTimeout(() => { bootScreen.style.transition = "opacity 0.8s ease"; bootScreen.style.opacity = "0"; setTimeout(() => { bootScreen.style.display = "none"; }, 800); }, 1500);
+    if (!textElement || !bootScreen) return;
+    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", "ACCESS GRANTED.", "SYSTEM ONLINE."];
+    let lineIndex = 0;
+    function typeLine() {
+        if (lineIndex < logs.length) {
+            const line = document.createElement('div');
+            line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line);
+            lineIndex++;
+            setTimeout(typeLine, Math.random() * 100 + 50);
+        } else {
+            setTimeout(() => {
+                bootScreen.style.transition = "opacity 0.8s ease";
+                bootScreen.style.opacity = "0";
+                setTimeout(() => { bootScreen.style.display = "none"; }, 800);
+            }, 500);
+        }
+    }
+    typeLine();
 }
 function initCursor() {
     if (window.innerWidth < 768) return;
@@ -115,36 +130,25 @@ async function loadRankings() {
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
 
-// ==========================================
-// 🎮 V14.0 系統防禦戰：暫停與軍火庫
-// ==========================================
-
+// 🎮 V14.0 Game Engine
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('start-game-btn');
 const stopBtn = document.getElementById('stop-game-btn');
-const shopBtn = document.getElementById('shop-btn'); // 商店按鈕
+const shopBtn = document.getElementById('shop-btn');
 const modalStartBtn = document.getElementById('modal-start-btn');
 const scoreHud = document.getElementById('game-hud');
 const hpBar = document.getElementById('hp-bar');
-const shopModal = document.getElementById('shop-modal'); // 商店視窗
+const shopModal = document.getElementById('shop-modal');
 const integrityUI = document.getElementById('integrity-ui');
 const gameModal = document.getElementById('game-start-modal');
 const body = document.body;
 
-let gameRunning = false;
-let gamePaused = false; // 暫停狀態
-let score = 0;
-let maxHp = 100;
-let currentHp = 100;
-let enemies = [], particles = [], bullets = [];
-let turrets = [], missiles = [], lasers = [], lightnings = []; // 各種武器陣列
-let bossSpawned = false;
-let animationFrameId, spawnInterval, autoWeaponInterval;
+let gameRunning = false, gamePaused = false, score = 0, maxHp = 100, currentHp = 100;
+let enemies = [], particles = [], bullets = [], turrets = [], missiles = [], lasers = [], lightnings = [];
+let bossSpawned = false, animationFrameId, spawnInterval, autoWeaponInterval;
 let isMobile = window.innerWidth < 768;
 let shieldActive = false;
-
-// 商店升級數據
 let shopItems = {
     damage: { baseCost: 100, level: 1, name: "火力" },
     blast:  { baseCost: 500, level: 1, name: "擴散" },
@@ -156,335 +160,168 @@ let shopItems = {
 };
 let stats = { damage: 10, blastRadius: 50, regenRate: 0 };
 
-function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    isMobile = window.innerWidth < 768;
-    if (isMobile && stats.blastRadius < 100) stats.blastRadius = 100; 
-}
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; isMobile = window.innerWidth < 768; if (isMobile && stats.blastRadius < 100) stats.blastRadius = 100; }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-const ENEMY_TYPES = [
-    { color: '#ff2a2a', hp: 10, speed: 2.5, size: 20, score: 10 },
-    { color: '#ff7f50', hp: 20, speed: 3.0, size: 22, score: 20 },
-    { color: '#bc13fe', hp: 100, speed: 1.0, size: 35, score: 50 },
-    { color: '#00ff00', hp: 50, speed: 2.0, size: 25, score: 30 },
-    { color: '#00f3ff', hp: 80, speed: 1.5, size: 30, score: 40 },
-    { color: '#ff00ff', hp: 150, speed: 1.2, size: 38, score: 60 },
-    { color: '#ffffff', hp: 250, speed: 0.8, size: 45, score: 100 },
-    { color: '#888888', hp: 30, speed: 4.0, size: 15, score: 25 },
-    { color: '#ffd700', hp: 2000, speed: 0.5, size: 80, score: 1000 },
-    { color: '#ff4757', hp: 5000, speed: 0.4, size: 100, score: 5000 }
-];
+const ENEMY_TYPES = [{ color: '#ff2a2a', hp: 10, speed: 2.5, size: 20, score: 10 }, { color: '#ff7f50', hp: 20, speed: 3.0, size: 22, score: 20 }, { color: '#bc13fe', hp: 100, speed: 1.0, size: 35, score: 50 }, { color: '#00ff00', hp: 50, speed: 2.0, size: 25, score: 30 }, { color: '#00f3ff', hp: 80, speed: 1.5, size: 30, score: 40 }, { color: '#ff00ff', hp: 150, speed: 1.2, size: 38, score: 60 }, { color: '#ffffff', hp: 250, speed: 0.8, size: 45, score: 100 }, { color: '#888888', hp: 30, speed: 4.0, size: 15, score: 25 }, { color: '#ffd700', hp: 2000, speed: 0.5, size: 80, score: 1000 }, { color: '#ff4757', hp: 5000, speed: 0.4, size: 100, score: 5000 }];
 
-// --- 實體類別 ---
 class Enemy {
     constructor() {
-        let difficulty = Math.floor(score / 2000); 
-        let level = Math.min(Math.floor(Math.random() * (difficulty + 2)), 9);
+        let difficulty = Math.floor(score / 2000), level = Math.min(Math.floor(Math.random() * (difficulty + 2)), 9);
         let type = ENEMY_TYPES[level];
-        this.size = type.size;
-        this.maxHp = type.hp * (1 + difficulty * 0.1);
-        this.hp = this.maxHp;
-        this.speed = isMobile ? type.speed * 0.7 : type.speed;
-        this.color = type.color;
-        this.scoreValue = type.score;
+        this.size = type.size; this.maxHp = type.hp * (1 + difficulty * 0.1); this.hp = this.maxHp;
+        this.speed = isMobile ? type.speed * 0.7 : type.speed; this.color = type.color; this.scoreValue = type.score;
         if (Math.random() > 0.5) { this.x = Math.random() > 0.5 ? -this.size : canvas.width + this.size; this.y = Math.random() * canvas.height; } 
         else { this.x = Math.random() * canvas.width; this.y = Math.random() > 0.5 ? -this.size : canvas.height + this.size; }
         const angle = Math.atan2(canvas.height/2 - this.y, canvas.width/2 - this.x);
         this.vx = Math.cos(angle) * this.speed; this.vy = Math.sin(angle) * this.speed;
     }
-    update() {
-        this.x += this.vx; this.y += this.vy;
-        if (Math.hypot(this.x - canvas.width/2, this.y - canvas.height/2) < 50) { this.hp = 0; takeDamage(10); }
-    }
-    draw() {
-        ctx.strokeStyle = this.color; ctx.lineWidth = 2;
-        ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
-        ctx.fillStyle = this.color; ctx.globalAlpha = 0.2;
-        ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
-        ctx.globalAlpha = 1.0;
-    }
+    update() { this.x += this.vx; this.y += this.vy; if (Math.hypot(this.x - canvas.width/2, this.y - canvas.height/2) < 50) { this.hp = 0; takeDamage(10); } }
+    draw() { ctx.strokeStyle = this.color; ctx.lineWidth = 2; ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size); ctx.fillStyle = this.color; ctx.globalAlpha = 0.2; ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size); ctx.globalAlpha = 1.0; }
 }
-
-class Drone {
-    constructor(index) {
-        this.index = index; this.distance = 100 + (index * 5);
-        this.angle = 0; this.fireCooldown = 0;
-    }
+class Turret {
+    constructor(index) { this.index = index; this.distance = 100 + (index * 5); this.angle = 0; this.fireCooldown = 0; }
     update() {
         this.angle += 0.02 + (this.index%2===0?0:-0.01);
-        this.x = canvas.width/2 + Math.cos(this.angle)*this.distance;
-        this.y = canvas.height/2 + Math.sin(this.angle)*this.distance;
-        if(this.fireCooldown <= 0) {
-            let target = getNearestEnemy(this.x, this.y, 300);
-            if(target) { bullets.push(new Bullet(this.x, this.y, target, 20)); this.fireCooldown = 30; }
-        } else this.fireCooldown--;
+        this.x = canvas.width/2 + Math.cos(this.angle)*this.distance; this.y = canvas.height/2 + Math.sin(this.angle)*this.distance;
+        if(this.fireCooldown <= 0) { let target = getNearestEnemy(this.x, this.y, 300); if(target) { bullets.push(new Bullet(this.x, this.y, target, 20)); this.fireCooldown = 30; } } else this.fireCooldown--;
     }
-    draw() {
-        ctx.fillStyle = '#00f3ff'; ctx.beginPath(); ctx.arc(this.x, this.y, 5, 0, Math.PI*2); ctx.fill();
-    }
+    draw() { ctx.fillStyle = '#00f3ff'; ctx.beginPath(); ctx.arc(this.x, this.y, 5, 0, Math.PI*2); ctx.fill(); }
 }
-
 class Missile {
-    constructor() {
-        this.x = canvas.width/2; this.y = canvas.height/2;
-        this.speed = 4; this.target = getNearestEnemy(this.x, this.y, 2000);
-        this.life = 200;
-    }
+    constructor() { this.x = canvas.width/2; this.y = canvas.height/2; this.speed = 4; this.target = getNearestEnemy(this.x, this.y, 2000); this.life = 200; }
     update() {
         if(!this.target || this.target.hp <= 0) this.target = getNearestEnemy(this.x, this.y, 2000);
         if(this.target) {
             let angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-            this.x += Math.cos(angle) * this.speed;
-            this.y += Math.sin(angle) * this.speed;
-            if(Math.hypot(this.x - this.target.x, this.y - this.target.y) < 30) {
-                this.life = 0; createParticles(this.x, this.y, '#ffaa00', 10);
-                this.target.hp -= 100; // 導彈高傷
-            }
-        }
-        this.life--;
+            this.x += Math.cos(angle) * this.speed; this.y += Math.sin(angle) * this.speed;
+            if(Math.hypot(this.x - this.target.x, this.y - this.target.y) < 30) { this.life = 0; createParticles(this.x, this.y, '#ffaa00', 10); this.target.hp -= 100; }
+        } this.life--;
     }
-    draw() {
-        ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = '#ffaa00'; ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x-5, this.y-5); ctx.stroke();
-    }
+    draw() { ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill(); }
 }
-
 class Laser {
     constructor() { this.active = false; this.cooldown = 0; this.maxCooldown = 120; }
     update() {
-        if(this.cooldown > 0) this.cooldown--;
-        else {
-            this.active = true;
-            // 雷射邏輯：隨機角度貫穿
-            this.angle = Math.random() * Math.PI * 2;
-            setTimeout(() => this.active = false, 200); // 持續0.2秒
-            this.cooldown = this.maxCooldown;
-            // 傷害判定
-            enemies.forEach(e => {
-                // 簡化判定：全屏傷害(偷懶) 或者 線段判定
-                // 這裡做全屏隨機光束太難，改為鎖定畫面最多怪的方向
-                e.hp -= 50; 
-                createParticles(e.x, e.y, '#00ff00', 2);
-            });
+        if(this.cooldown > 0) this.cooldown--; else {
+            this.active = true; this.angle = Math.random() * Math.PI * 2; setTimeout(() => this.active = false, 200); this.cooldown = this.maxCooldown;
+            enemies.forEach(e => { e.hp -= 50; createParticles(e.x, e.y, '#00ff00', 2); });
         }
     }
-    draw() {
-        if(this.active) {
-            ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 5; ctx.globalAlpha = 0.5;
-            ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height/2);
-            ctx.lineTo(canvas.width/2 + Math.cos(this.angle)*2000, canvas.height/2 + Math.sin(this.angle)*2000);
-            ctx.stroke(); ctx.globalAlpha = 1;
-        }
-    }
+    draw() { if(this.active) { ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 5; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height/2); ctx.lineTo(canvas.width/2 + Math.cos(this.angle)*2000, canvas.height/2 + Math.sin(this.angle)*2000); ctx.stroke(); ctx.globalAlpha = 1; } }
 }
-
 class Bullet {
-    constructor(x, y, target, damage) {
-        this.x = x; this.y = y; this.target = target; this.damage = damage; this.active = true;
-        let angle = Math.atan2(target.y - y, target.x - x);
-        this.vx = Math.cos(angle)*10; this.vy = Math.sin(angle)*10;
-    }
+    constructor(x, y, target, damage) { this.x = x; this.y = y; this.target = target; this.damage = damage; this.active = true; let angle = Math.atan2(target.y - y, target.x - x); this.vx = Math.cos(angle)*10; this.vy = Math.sin(angle)*10; }
     update() {
         this.x += this.vx; this.y += this.vy;
-        if(Math.hypot(this.x - this.target.x, this.y - this.target.y) < this.target.size) {
-            this.target.hp -= this.damage; this.active = false;
-        }
+        if(Math.hypot(this.x - this.target.x, this.y - this.target.y) < this.target.size) { this.target.hp -= this.damage; this.active = false; }
         if(this.x < 0 || this.x > canvas.width) this.active = false;
     }
     draw() { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill(); }
 }
-
 function getNearestEnemy(x, y, range) {
     let nearest = null, min = range;
-    enemies.forEach(e => {
-        let d = Math.hypot(e.x - x, e.y - y);
-        if(d < min) { min = d; nearest = e; }
-    });
+    enemies.forEach(e => { let d = Math.hypot(e.x - x, e.y - y); if(d < min) { min = d; nearest = e; } });
     return nearest;
 }
-
-function createParticles(x, y, color, count) {
-    for(let i=0; i<count; i++) particles.push({ x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, life:1, color, size:3 });
-}
-
+function createParticles(x, y, color, count) { for(let i=0; i<count; i++) particles.push({ x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, life:1, color, size:3 }); }
 function takeDamage(amount) {
     if(shieldActive) return;
     currentHp -= amount; hpBar.style.width = `${Math.max(0, currentHp/maxHp*100)}%`;
     if(currentHp <= 0) { stopGame(); alert(`GAME OVER! Score: ${score}`); }
 }
-
-// 🎮 自動武器邏輯 (每秒執行)
 function autoWeaponLogic() {
     if(!gameRunning || gamePaused) return;
-    
-    // 回血
-    if(stats.regenRate > 0 && currentHp < maxHp) {
-        currentHp = Math.min(currentHp + stats.regenRate, maxHp);
-        hpBar.style.width = `${(currentHp / maxHp) * 100}%`;
-    }
-    
-    // 閃電鏈 (每秒觸發)
+    if(stats.regenRate > 0 && currentHp < maxHp) { currentHp = Math.min(currentHp + stats.regenRate, maxHp); hpBar.style.width = `${(currentHp / maxHp) * 100}%`; }
     if(shopItems.lightning.level > 0) {
-        let targets = enemies.slice(0, shopItems.lightning.level + 2); // 等級越高電越多隻
+        let targets = enemies.slice(0, shopItems.lightning.level + 2);
         if(targets.length > 0) {
-            ctx.strokeStyle = '#bc13fe'; ctx.lineWidth = 2; ctx.beginPath();
-            ctx.moveTo(canvas.width/2, canvas.height/2);
-            targets.forEach(e => {
-                ctx.lineTo(e.x, e.y); e.hp -= 30;
-                createParticles(e.x, e.y, '#bc13fe', 5);
-            });
-            ctx.stroke(); // 注意：這個繪圖會馬上消失，最好在 draw loop 處理，這裡簡化
+            ctx.strokeStyle = '#bc13fe'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height/2);
+            targets.forEach(e => { ctx.lineTo(e.x, e.y); e.hp -= 30; createParticles(e.x, e.y, '#bc13fe', 5); }); ctx.stroke();
         }
     }
-    
-    // 導彈發射
-    if(shopItems.missile.level > 0) {
-        for(let i=0; i<shopItems.missile.level; i++) missiles.push(new Missile());
-    }
+    if(shopItems.missile.level > 0) { for(let i=0; i<shopItems.missile.level; i++) missiles.push(new Missile()); }
 }
-
 function spawnLogic() {
     if (!gameRunning || gamePaused) return;
     let spawnChance = 0.7 + (score / 3000);
-    if (Math.random() < spawnChance) {
-        let count = isMobile ? 3 : 1; 
-        if(score > 2000) count++;
-        for(let i=0; i<count; i++) enemies.push(new Enemy());
-    }
+    if (Math.random() < spawnChance) { let count = isMobile ? 3 : 1; if(score > 2000) count++; for(let i=0; i<count; i++) enemies.push(new Enemy()); }
 }
-
 function gameLoop() {
     if (!gameRunning) return;
-    if (!gamePaused) { // 🌟 暫停時不更新邏輯，只重繪畫面
+    if (!gamePaused) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 核心
-        ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 20, 0, Math.PI*2); ctx.stroke();
-        ctx.fillStyle = "#00f3ff"; ctx.fillText("CORE", canvas.width/2 - 15, canvas.height/2 + 4);
-
+        ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 20, 0, Math.PI*2); ctx.stroke(); ctx.fillStyle = "#00f3ff"; ctx.fillText("CORE", canvas.width/2 - 15, canvas.height/2 + 4);
         turrets.forEach(t => { t.update(); t.draw(); });
         missiles.forEach((m, i) => { m.update(); m.draw(); if(m.life<=0) missiles.splice(i,1); });
         lasers.forEach(l => { l.update(); l.draw(); });
         bullets.forEach((b, i) => { b.update(); b.draw(); if (!b.active) bullets.splice(i, 1); });
-        
-        enemies.forEach((e, i) => {
-            e.update(); e.draw();
-            if (e.hp <= 0) { score += e.scoreValue; scoreHud.innerText = `SCORE: ${score}`; createParticles(e.x, e.y, e.color, 10); enemies.splice(i, 1); }
-        });
-        
-        particles.forEach((p, i) => {
-            p.x += p.vx; p.y += p.vy; p.life -= 0.05;
-            if (p.life <= 0) particles.splice(i, 1);
-            else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.globalAlpha = 1.0; }
-        });
+        enemies.forEach((e, i) => { e.update(); e.draw(); if (e.hp <= 0) { score += e.scoreValue; scoreHud.innerText = `SCORE: ${score}`; createParticles(e.x, e.y, e.color, 10); enemies.splice(i, 1); } });
+        particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.05; if (p.life <= 0) particles.splice(i, 1); else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.globalAlpha = 1.0; } });
     }
     animationFrameId = requestAnimationFrame(gameLoop);
 }
-
 function handleInput(x, y) {
     if (!gameRunning || gamePaused) return;
     createParticles(x, y, '#ffffff', 5);
     const hitRadius = stats.blastRadius;
     enemies.forEach(e => {
         const dist = Math.hypot(e.x - x, e.y - y);
-        if (dist < hitRadius + e.size) {
-            let dmg = stats.damage;
-            e.hp -= dmg; e.x -= e.vx * 5; e.y -= e.vy * 5;
-            createParticles(e.x, e.y, '#fff', 2);
-        }
+        if (dist < hitRadius + e.size) { let dmg = stats.damage; e.hp -= dmg; e.x -= e.vx * 5; e.y -= e.vy * 5; createParticles(e.x, e.y, '#fff', 2); }
     });
 }
-
-// 🌟 暫停/開啟商店
 window.toggleShop = function() {
     if(!gameRunning) return;
     gamePaused = !gamePaused;
-    
     if(gamePaused) {
         shopModal.style.display = 'flex';
-        // 更新價格顯示
         for(let key in shopItems) {
             let item = shopItems[key];
-            let costEl = document.getElementById(`cost-${key}`);
-            let lvlEl = document.getElementById(`lvl-${key}`);
+            let costEl = document.getElementById(`cost-${key}`), lvlEl = document.getElementById(`lvl-${key}`);
             if(costEl) costEl.innerText = `$${Math.floor(item.baseCost * Math.pow(1.5, item.level))}`;
             if(lvlEl) lvlEl.innerText = `Lv${item.level}`;
         }
-    } else {
-        shopModal.style.display = 'none';
-    }
+    } else { shopModal.style.display = 'none'; }
 };
-
 window.buyItem = function(type) {
-    if(type === 'shield') { // 護盾特殊處理 (一次性)
-        if(score >= 5000) {
-            score -= 5000; scoreHud.innerText = `SCORE: ${score}`;
-            shieldActive = true; 
-            setTimeout(() => shieldActive = false, 10000);
-            toggleShop(); // 買完關閉
-        }
-        return;
+    if(type === 'shield') {
+        if(score >= 5000) { score -= 5000; scoreHud.innerText = `SCORE: ${score}`; shieldActive = true; setTimeout(() => shieldActive = false, 10000); toggleShop(); } return;
     }
-
-    let item = shopItems[type];
-    let cost = Math.floor(item.baseCost * Math.pow(1.5, item.level));
-
+    let item = shopItems[type], cost = Math.floor(item.baseCost * Math.pow(1.5, item.level));
     if (score >= cost) {
-        score -= cost;
-        scoreHud.innerText = `SCORE: ${score}`;
-        item.level++;
-        
+        score -= cost; scoreHud.innerText = `SCORE: ${score}`; item.level++;
         if(type === 'damage') stats.damage += 10;
         if(type === 'blast') stats.blastRadius += 15;
-        if(type === 'drone') turrets.push(new Drone(turrets.length));
+        if(type === 'drone') turrets.push(new Turret(turrets.length));
         if(type === 'laser') lasers.push(new Laser());
+        if(type === 'lightning') {}
+        if(type === 'missile') {} 
         if(type === 'regen') stats.regenRate += 1;
-        
-        // 刷新介面
         document.getElementById(`cost-${type}`).innerText = `$${Math.floor(item.baseCost * Math.pow(1.5, item.level))}`;
         document.getElementById(`lvl-${type}`).innerText = `Lv${item.level}`;
     }
 };
-
 canvas.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
-canvas.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    for (let i = 0; i < e.touches.length; i++) { handleInput(e.touches[i].clientX, e.touches[i].clientY); }
-}, {passive: false});
-
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); for (let i = 0; i < e.touches.length; i++) { handleInput(e.touches[i].clientX, e.touches[i].clientY); } }, {passive: false});
 function initGame() { gameModal.style.display = 'flex'; body.classList.add('game-active'); }
 function startGame() {
-    gameModal.style.display = 'none'; canvas.style.display = 'block'; 
-    shopBtn.style.display = 'block'; // 顯示商店按鈕
-    integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
-    
-    gameRunning = true; gamePaused = false;
-    score = 0; scoreHud.innerText = "SCORE: 0"; maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
-    stats = { damage: 10, blastRadius: 50, regenRate: 0 };
-    if(isMobile) stats.blastRadius = 100;
-    
+    gameModal.style.display = 'none'; canvas.style.display = 'block'; shopBtn.style.display = 'block'; integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
+    gameRunning = true; gamePaused = false; score = 0; scoreHud.innerText = "SCORE: 0"; maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
+    stats = { damage: 10, blastRadius: 50, regenRate: 0 }; if(isMobile) stats.blastRadius = 100;
     enemies = []; turrets = []; bullets = []; missiles = []; lasers = []; particles = [];
-    for(let key in shopItems) shopItems[key].level = 0; // 重置等級
-
+    for(let key in shopItems) shopItems[key].level = 0;
     for(let i=0; i<5; i++) enemies.push(new Enemy());
-    spawnInterval = setInterval(spawnLogic, 400);
-    autoWeaponInterval = setInterval(autoWeaponLogic, 1000);
+    spawnInterval = setInterval(spawnLogic, 400); autoWeaponInterval = setInterval(autoWeaponLogic, 1000);
     gameLoop();
 }
 function stopGame() {
     gameRunning = false; cancelAnimationFrame(animationFrameId); clearInterval(spawnInterval); clearInterval(autoWeaponInterval);
-    canvas.style.display = 'none'; shopModal.style.display = 'none'; shopBtn.style.display = 'none';
-    integrityUI.style.display = 'none'; gameModal.style.display = 'none';
+    canvas.style.display = 'none'; shopModal.style.display = 'none'; shopBtn.style.display = 'none'; integrityUI.style.display = 'none'; gameModal.style.display = 'none';
     startBtn.style.display = 'block'; stopBtn.style.display = 'none'; scoreHud.style.display = 'none';
     body.classList.remove('game-active');
 }
-
 if(startBtn) startBtn.addEventListener('click', initGame);
 if(modalStartBtn) modalStartBtn.addEventListener('click', startGame);
 if(stopBtn) stopBtn.addEventListener('click', stopGame);
-
 loadRankings();
