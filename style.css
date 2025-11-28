@@ -17,23 +17,18 @@ body {
     background-color: var(--bg-dark);
     color: #fff;
     overflow-x: hidden;
-    /* 優化：只在支援精準指標(滑鼠)的裝置上隱藏游標 */
     cursor: default; 
 }
-@media (pointer: fine) {
-    body { cursor: none; }
-}
+@media (pointer: fine) { body { cursor: none; } }
 
-/* 2. 賽博卷軸 */
+/* 捲軸 & 進度條 */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #000; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple)); border-radius: 3px; }
-
-/* 3. 頂部能量進度條 */
 .scroll-progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 10001; background: rgba(255, 255, 255, 0.1); }
 .scroll-progress-bar { height: 100%; width: 0%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transition: width 0.1s; }
 
-/* 背景與紋理 */
+/* 背景特效 */
 .bg-particles {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
     background-image: radial-gradient(2px 2px at 20px 30px, #fff, transparent), radial-gradient(2px 2px at 40px 70px, #fff, transparent);
@@ -45,8 +40,7 @@ body {
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
                 linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    background-size: 100% 4px, 6px 100%;
-    z-index: 9000; pointer-events: none; opacity: 0.4;
+    background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.4;
 }
 
 /* 十字準心 */
@@ -54,13 +48,11 @@ body {
 .crosshair-x { top: 0; left: 0; width: 100vw; height: 1px; }
 .crosshair-y { top: 0; left: 0; width: 1px; height: 100vh; }
 
-/* 數據監控 */
+/* 數據監控 (位置保持) */
 .sys-monitor {
     position: fixed; bottom: 20px; right: 20px;
-    font-family: 'Consolas', monospace; font-size: 0.8em;
-    color: var(--neon-cyan); text-align: right;
-    z-index: 9997; pointer-events: none;
-    line-height: 1.5; text-shadow: 0 0 5px var(--neon-cyan);
+    font-family: 'Consolas', monospace; font-size: 0.8em; color: var(--neon-cyan); text-align: right;
+    z-index: 9997; pointer-events: none; line-height: 1.5; text-shadow: 0 0 5px var(--neon-cyan);
     border-right: 2px solid var(--neon-cyan); padding-right: 10px;
 }
 
@@ -82,13 +74,12 @@ h1 {
 @keyframes gradient-flow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 header p { color: var(--neon-cyan); letter-spacing: 6px; margin-top: 20px; }
 main { max-width: 1300px; margin: 60px auto; padding: 0 30px; }
-
 h2 {
     text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px; margin-bottom: 50px; white-space: normal; line-height: 1.3;
 }
 
-/* 分團卡片與 Tier 顏色系統 */
+/* 分團卡片 */
 .team-section {
     margin-bottom: 60px; background: var(--panel-bg);
     clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);
@@ -98,68 +89,37 @@ h2 {
 }
 .team-section.reveal-active { opacity: 1; transform: translateY(0); }
 .team-section:hover { transform: translateY(-3px); }
-.team-section::after {
-    content: ""; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transform: skewX(-25deg); transition: 0s; pointer-events: none;
-}
-.team-section:hover::after { left: 150%; transition: 0.7s ease-in-out; }
 
-/* 🌟 各團專屬配色 (Tier Colors) */
+/* 🌟 修復團標題 (移除漸層背景，改用實心文字) */
+.team-title { font-size: 2em; margin-bottom: 30px; display: inline-flex; align-items: center; color: #fff; text-shadow: 0 0 10px currentColor; }
+.team-title::before { content: ''; width: 15px; height: 15px; margin-right: 15px; background-color: currentColor; box-shadow: 0 0 10px currentColor; }
+
+/* Tier 顏色定義 (直接設定文字顏色，解決色塊遮擋問題) */
+.tier-1-theme .team-title { color: var(--neon-gold); }
 .tier-1-theme { border-left-color: var(--neon-gold); }
-.tier-1-theme .team-title, .tier-1-theme .team-title::before { color: var(--neon-gold); background-color: var(--neon-gold); box-shadow: 0 0 10px var(--neon-gold); }
-
+.tier-2-theme .team-title { color: var(--neon-cyan); }
 .tier-2-theme { border-left-color: var(--neon-cyan); }
-.tier-2-theme .team-title, .tier-2-theme .team-title::before { color: var(--neon-cyan); background-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
-
+.tier-3-theme .team-title { color: var(--neon-green); }
 .tier-3-theme { border-left-color: var(--neon-green); }
-.tier-3-theme .team-title, .tier-3-theme .team-title::before { color: var(--neon-green); background-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
-
+.tier-4-theme .team-title { color: var(--neon-purple); }
 .tier-4-theme { border-left-color: var(--neon-purple); }
-.tier-4-theme .team-title, .tier-4-theme .team-title::before { color: var(--neon-purple); background-color: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple); }
-
+.tier-5-theme .team-title { color: var(--neon-red); }
 .tier-5-theme { border-left-color: var(--neon-red); }
-.tier-5-theme .team-title, .tier-5-theme .team-title::before { color: var(--neon-red); background-color: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
 
-/* 磁吸標題 */
-.team-title { 
-    font-size: 2em; margin-bottom: 30px; display: inline-flex; align-items: center; 
-}
-.team-title::before { content: ''; width: 15px; height: 15px; margin-right: 15px; }
-
-/* 表格優化 */
-.ranking-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; min-width: 600px; /* 手機版強制寬度以觸發捲動 */ }
-.ranking-table th { text-align: left; color: #ccc; /* 提高對比 */ background: rgba(255,255,255,0.05); padding: 15px 20px; letter-spacing: 1px; }
+/* 表格 */
+.ranking-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; min-width: 600px; }
+.ranking-table th { text-align: left; color: #ccc; background: rgba(255,255,255,0.05); padding: 15px 20px; letter-spacing: 1px; }
 .ranking-table tbody tr { background: rgba(255, 255, 255, 0.02); transition: 0.1s; }
-.ranking-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.1); transform: translateX(5px);
-    text-shadow: 1px 0 rgba(255, 42, 42, 0.7), -1px 0 rgba(0, 102, 255, 0.7);
-}
+.ranking-table tbody tr:hover { background: rgba(255, 255, 255, 0.1); transform: translateX(5px); text-shadow: 1px 0 rgba(255, 42, 42, 0.7), -1px 0 rgba(0, 102, 255, 0.7); }
 .ranking-table td { padding: 18px 20px; color: #eee; }
 
-/* 🌟 角色專屬樣式 Class (取代 JS inline style) */
-/* 團長 */
-.row-leader { 
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent) !important; 
-    border-left: 4px solid var(--neon-gold); 
-}
-.row-leader .rank { color: var(--neon-gold); font-weight: bold; }
-.row-leader .name { color: var(--neon-gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-weight: bold; font-size: 1.1em; }
-.row-leader .score { color: var(--neon-gold); font-weight: bold; letter-spacing: 1px; }
-
-/* NPC */
+/* 角色樣式 */
+.row-leader { background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent) !important; border-left: 4px solid var(--neon-gold); }
+.row-leader .rank, .row-leader .name, .row-leader .score { color: var(--neon-gold); font-weight: bold; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
 .row-npc { border-left: 3px solid var(--neon-green); }
-.row-npc .name { color: var(--neon-green); font-weight: bold; }
-.row-npc .score { color: var(--neon-green); font-weight: bold; letter-spacing: 1px; }
-
-/* 自願降團 */
+.row-npc .name, .row-npc .score { color: var(--neon-green); font-weight: bold; }
 .row-demoted { border-left: 3px solid var(--neon-red); }
-.demoted-tag { 
-    display: inline-block; border: 1px solid var(--neon-red); color: var(--neon-red); 
-    padding: 1px 6px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; 
-}
-
-/* 預設欄位樣式 */
+.demoted-tag { display: inline-block; border: 1px solid var(--neon-red); color: var(--neon-red); padding: 1px 6px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
 .rank { font-weight: bold; color: var(--neon-cyan); white-space: nowrap; }
 .hacker-text { font-family: 'Consolas', monospace; cursor: crosshair; }
 .score { color: #aaa; font-size: 0.9em; }
@@ -176,155 +136,50 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 .cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; }
 .cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s, background-color 0.2s; opacity: 0; }
 
-/* 🌟 手機與無障礙優化 */
+/* 🌟 遊戲模式專屬樣式 */
+#game-canvas {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: 9995; pointer-events: auto; display: none; cursor: crosshair;
+    touch-action: none; /* 防止手機滑動 */
+}
+/* 🌟 修正：按鈕容器上移，避免重疊 */
+.game-ui-container {
+    position: fixed; bottom: 120px; right: 20px; z-index: 10002;
+    text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+}
+.cy-btn {
+    background: rgba(0, 0, 0, 0.8); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
+    padding: 10px 20px; font-family: 'Rajdhani', 'Consolas', sans-serif; font-size: 1.1em; font-weight: bold;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    transition: 0.3s;
+}
+.cy-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px var(--neon-cyan); }
+.cy-btn.danger { border-color: var(--neon-red); color: var(--neon-red); }
+.cy-btn.danger:hover { background: var(--neon-red); color: #000; box-shadow: 0 0 15px var(--neon-red); }
+.game-score-board {
+    font-family: 'Consolas', monospace; font-size: 2em; color: var(--neon-gold);
+    text-shadow: 0 0 10px var(--neon-gold); display: none; background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px; border-left: 3px solid var(--neon-gold); margin-bottom: 10px;
+}
+body.game-active main, body.game-active header { filter: blur(5px) brightness(0.3); pointer-events: none; transition: 0.5s; }
+
+/* 遊戲訊息文字 (加分/道具提示) */
+.game-msg {
+    position: absolute; color: #fff; font-weight: bold; font-family: 'Consolas', sans-serif;
+    pointer-events: none; animation: floatUp 1s forwards; text-shadow: 0 0 5px #fff;
+}
+@keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+
+/* 手機適配 */
 @media (max-width: 768px) {
     .hud-corner, .cursor-dot, .cursor-outline, .sys-monitor, .crosshair-line { display: none; } 
     h1 { font-size: 2.5em; white-space: normal; }
     h2 { text-align: left; font-size: 1.3em; }
-    .team-section { padding: 20px; opacity: 1; transform: none; overflow-x: auto; /* 手機版表格可左右滑動 */ }
+    .team-section { padding: 20px; opacity: 1; transform: none; overflow-x: auto; }
     .ranking-table td { padding: 12px 10px; font-size: 0.9em; }
-}
-
-/* 減少動態模式 (Respect User Preference) */
-@media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; }
-    .bg-particles, .scanlines { opacity: 0.1; }
-    .team-section { opacity: 1; transform: none; }
-}
-
-/* ... (保留原本上面的所有 CSS) ... */
-
-/* =========================================
-   🎮 系統防禦模式 (Game Mode)
-   ========================================= */
-
-/* 1. 遊戲畫布 (預設隱藏) */
-#game-canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    z-index: 9995; /* 比背景高，但比游標低 */
-    pointer-events: auto; /* 遊戲開啟時，允許點擊 */
-    display: none; /* 預設關閉 */
-    cursor: none; /* 保持自定義游標 */
-}
-
-/* 2. 遊戲 UI 容器 */
-.game-ui-container {
-    position: fixed;
-    bottom: 80px; /* 在數據監控上方 */
-    right: 20px;
-    z-index: 10002; /* 最高層級 UI */
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-}
-
-/* 3. 按鈕樣式 (賽博風格) */
-.cy-btn {
-    background: transparent;
-    border: 1px solid var(--neon-cyan);
-    color: var(--neon-cyan);
-    padding: 10px 20px;
-    font-family: 'Rajdhani', 'Consolas', sans-serif;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    position: relative;
-    overflow: hidden;
-    transition: 0.3s;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-}
-
-.cy-btn:hover {
-    background: var(--neon-cyan);
-    color: #000;
-    box-shadow: 0 0 15px var(--neon-cyan);
-}
-
-.cy-btn.danger {
-    border-color: var(--neon-red);
-    color: var(--neon-red);
-}
-
-.cy-btn.danger:hover {
-    background: var(--neon-red);
-    color: #000;
-    box-shadow: 0 0 15px var(--neon-red);
-}
-
-/* 4. 分數顯示 */
-.game-score-board {
-    font-family: 'Consolas', monospace;
-    font-size: 2em;
-    color: var(--neon-gold);
-    text-shadow: 0 0 10px var(--neon-gold);
-    display: none; /* 遊戲開始才顯示 */
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px;
-    border-left: 3px solid var(--neon-gold);
-    margin-bottom: 10px;
-}
-
-/* 遊戲進行中，讓底下的表格變暗，凸顯遊戲 */
-body.game-active main, 
-body.game-active header {
-    filter: blur(5px) brightness(0.3);
-    pointer-events: none; /* 防止點到表格 */
-    transition: 0.5s;
-}
-
-/* =========================================
-   🚨 V7.1 緊急修復補丁 (Fixes)
-   ========================================= */
-
-/* 1. 強制修正遊戲介面位置 (解決跑去左上角的問題) */
-.game-ui-container {
-    position: fixed !important; /* 強制固定 */
-    bottom: 80px !important;    /* 距離底部 */
-    right: 20px !important;     /* 距離右邊 */
-    top: auto !important;       /* 取消頂部定位 */
-    left: auto !important;      /* 取消左邊定位 */
-    z-index: 10002;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-}
-
-/* 確保按鈕樣式正確 */
-.cy-btn {
-    background: rgba(0, 0, 0, 0.8); /* 加深背景確保可見 */
-    border: 1px solid var(--neon-cyan);
-    color: var(--neon-cyan);
-    padding: 10px 20px;
-    font-family: 'Consolas', sans-serif;
-    font-weight: bold;
-    cursor: pointer;
-    text-transform: uppercase;
-}
-
-/* 2. 修復手機版標題消失的問題 */
-@media (max-width: 768px) {
-    /* 強制取消漸層文字，改回實心白色，確保手機一定看得到 */
-    .team-title {
-        background: none !important;
-        -webkit-text-fill-color: #fff !important; /* iOS 修正 */
-        color: #fff !important;
-        text-shadow: none !important;
-        display: block !important; /* 防止擠壓 */
-        font-size: 1.5em !important;
-        margin-bottom: 15px !important;
-    }
-    
-    /* 讓前面的裝飾方塊保持顏色 */
-    .tier-1-theme .team-title { color: var(--neon-gold) !important; -webkit-text-fill-color: var(--neon-gold) !important; }
-    .tier-2-theme .team-title { color: var(--neon-cyan) !important; -webkit-text-fill-color: var(--neon-cyan) !important; }
-    .tier-3-theme .team-title { color: var(--neon-green) !important; -webkit-text-fill-color: var(--neon-green) !important; }
-    .tier-4-theme .team-title { color: var(--neon-purple) !important; -webkit-text-fill-color: var(--neon-purple) !important; }
-    .tier-5-theme .team-title { color: var(--neon-red) !important; -webkit-text-fill-color: var(--neon-red) !important; }
+    /* 手機版按鈕稍微縮小 */
+    .game-ui-container { bottom: 20px; right: 10px; }
+    .game-score-board { font-size: 1.5em; }
+    .cy-btn { padding: 8px 15px; font-size: 0.9em; }
 }
