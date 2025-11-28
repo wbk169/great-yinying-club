@@ -130,7 +130,7 @@ async function loadRankings() {
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
 
-// 🎮 V14.0 Game Engine
+// 🎮 V15.2 Game Engine (電腦版福利)
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('start-game-btn');
@@ -307,7 +307,13 @@ canvas.addEventListener('touchstart', (e) => { e.preventDefault(); for (let i = 
 function initGame() { gameModal.style.display = 'flex'; body.classList.add('game-active'); }
 function startGame() {
     gameModal.style.display = 'none'; canvas.style.display = 'block'; shopBtn.style.display = 'block'; integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
-    gameRunning = true; gamePaused = false; score = 0; scoreHud.innerText = "SCORE: 0"; maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
+    
+    // 🌟 電腦版福利：2000分
+    gameRunning = true; gamePaused = false; 
+    score = isMobile ? 0 : 2000; 
+    scoreHud.innerText = `SCORE: ${score}`;
+    
+    maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
     stats = { damage: 10, blastRadius: 50, regenRate: 0 }; if(isMobile) stats.blastRadius = 100;
     enemies = []; turrets = []; bullets = []; missiles = []; lasers = []; particles = [];
     for(let key in shopItems) shopItems[key].level = 0;

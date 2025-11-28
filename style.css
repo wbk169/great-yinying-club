@@ -39,7 +39,6 @@ body.game-active { overflow: hidden; }
 .crosshair-x { top: 0; left: 0; width: 100vw; height: 1px; }
 .crosshair-y { top: 0; left: 0; width: 1px; height: 100vh; }
 
-/* 🌟 右下角 FPS 監控 (保持在最底部) */
 .sys-monitor { position: fixed; bottom: 10px; right: 10px; font-family: 'Consolas', monospace; font-size: 0.7em; color: var(--neon-cyan); text-align: right; z-index: 9997; pointer-events: none; line-height: 1.5; text-shadow: 0 0 5px var(--neon-cyan); border-right: 2px solid var(--neon-cyan); padding-right: 10px; }
 
 .hud-corner { position: fixed; width: 30px; height: 30px; border: 2px solid var(--neon-cyan); z-index: 9998; pointer-events: none; opacity: 0.8; }
@@ -72,16 +71,7 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 .ranking-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; min-width: 600px; }
 .ranking-table th { text-align: left; color: #ccc; background: rgba(255,255,255,0.05); padding: 15px 20px; letter-spacing: 1px; }
 .ranking-table tbody tr { background: rgba(255, 255, 255, 0.02); transition: 0.1s; }
-
-/* 🌟 強效 RGB 故障特效 (Hover時) */
-.ranking-table tbody tr:hover {
-    background: rgba(0, 243, 255, 0.15) !important;
-    transform: translateX(10px) !important;
-    /* 紅藍色差 */
-    text-shadow: 2px 0 var(--neon-red), -2px 0 var(--neon-blue) !important;
-    box-shadow: -4px 0 0 var(--neon-cyan) !important;
-    z-index: 10; position: relative;
-}
+.ranking-table tbody tr:hover { background: rgba(0, 243, 255, 0.15) !important; transform: translateX(10px) !important; text-shadow: 2px 0 var(--neon-red), -2px 0 var(--neon-blue) !important; box-shadow: -4px 0 0 var(--neon-cyan) !important; z-index: 10; position: relative; }
 .ranking-table td { padding: 18px 20px; color: #eee; }
 
 /* 角色樣式 */
@@ -98,40 +88,47 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 .cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; }
 .cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, background-color 0.2s; opacity: 0; }
 
-/* 🌟 遊戲 UI (修復重疊) */
+/* 🌟 遊戲 UI */
 #game-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9995; pointer-events: auto; display: none; cursor: crosshair; touch-action: none; }
-
-/* 強制將按鈕容器上移，避開 FPS */
-.game-ui-container {
-    position: fixed !important; 
-    bottom: 100px !important; /* 🌟 這裡修正了高度 */
-    right: 20px !important; 
-    top: auto !important; left: auto !important;
-    z-index: 10002; display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
-}
-
-.cy-btn {
-    background: rgba(0, 0, 0, 0.9); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);
-    padding: 10px 20px; font-family: 'Rajdhani', 'Consolas', sans-serif; font-size: 1.1em; font-weight: bold;
-    cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-    transition: 0.1s; touch-action: manipulation; 
-}
+.game-ui-container { position: fixed !important; bottom: 100px !important; right: 20px !important; top: auto !important; left: auto !important; z-index: 10002; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.cy-btn { background: rgba(0, 0, 0, 0.9); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 10px 20px; font-family: 'Rajdhani', 'Consolas', sans-serif; font-size: 1.1em; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: 0.1s; touch-action: manipulation; }
 .cy-btn:active { transform: scale(0.95); background: var(--neon-cyan); color: #000; }
 .cy-btn.danger { border-color: var(--neon-red); color: var(--neon-red); }
 .cy-btn.danger:active { background: var(--neon-red); color: #000; }
 .cy-btn.shop { border-color: var(--neon-gold); color: var(--neon-gold); }
 .cy-btn.shop:active { background: var(--neon-gold); color: #000; }
-
-.game-score-board {
-    font-family: 'Consolas', monospace; font-size: 2em; color: var(--neon-gold);
-    text-shadow: 0 0 10px var(--neon-gold); display: none; background: rgba(0, 0, 0, 0.7);
-    padding: 10px 20px; border-left: 3px solid var(--neon-gold); margin-bottom: 10px;
-}
+.game-score-board { font-family: 'Consolas', monospace; font-size: 2em; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); display: none; background: rgba(0, 0, 0, 0.7); padding: 10px 20px; border-left: 3px solid var(--neon-gold); margin-bottom: 10px; }
 body.game-active main, body.game-active header { filter: blur(8px) brightness(0.2); pointer-events: none; transition: 0.5s; }
 
-.shop-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 10020; display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-.shop-container { width: 90%; max-width: 1000px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; padding: 20px; background: rgba(0, 20, 40, 0.8); border: 2px solid var(--neon-cyan); box-shadow: 0 0 50px rgba(0, 243, 255, 0.1); }
+/* 🌟 全螢幕商店 (修復捲動問題) */
+.shop-modal {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.95); z-index: 10020;
+    display: none;
+    justify-content: center; 
+    /* 修正：允許內容過長時從頂部開始排，並開啟捲動 */
+    align-items: flex-start; 
+    overflow-y: auto; 
+    backdrop-filter: blur(10px);
+    padding-top: 20px;
+}
+.shop-container {
+    width: 90%; max-width: 1000px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;
+    padding: 20px; background: rgba(0, 20, 40, 0.8); border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+    /* 修正：增加底部邊距，確保可以滑到底 */
+    margin-bottom: 50px;
+    position: relative; /* 給叉叉定位 */
+}
+/* 🌟 新增：商店關閉叉叉 */
+.shop-close-x {
+    position: absolute; top: 10px; right: 20px;
+    color: var(--neon-red); font-size: 2.5em; cursor: pointer;
+    font-family: Arial, sans-serif; line-height: 1; z-index: 10030;
+}
+.shop-close-x:hover { text-shadow: 0 0 10px var(--neon-red); }
+
 .shop-header { grid-column: 1 / -1; text-align: center; color: var(--neon-gold); font-size: 2em; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 5px; border-bottom: 1px solid var(--neon-gold); }
 .shop-card { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border-color); padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; touch-action: manipulation; }
 .shop-card:hover { border-color: var(--neon-cyan); background: rgba(0, 243, 255, 0.1); transform: translateY(-5px); }
@@ -167,10 +164,9 @@ body.game-active main, body.game-active header { filter: blur(8px) brightness(0.
     .team-section { padding: 20px; opacity: 1; transform: none; overflow-x: auto; }
     .ranking-table td { padding: 12px 10px; font-size: 0.9em; }
     .game-score-board { position: fixed; top: 60px; left: 10px; font-size: 1.2em; border: none; padding: 5px; background: none; text-shadow: 0 0 5px var(--neon-gold); }
-    
-    /* 🌟 手機版按鈕也上移 */
     .game-ui-container { bottom: 120px; right: 10px; }
     
+    /* 商店在手機版改為 2 列，防止太擠 */
     .shop-container { grid-template-columns: repeat(2, 1fr); padding: 10px; gap: 10px; }
     .team-title { background: none !important; -webkit-text-fill-color: #fff !important; color: #fff !important; text-shadow: none !important; display: block !important; font-size: 1.5em !important; margin-bottom: 15px !important; }
     .tier-1-theme .team-title { color: var(--neon-gold) !important; -webkit-text-fill-color: var(--neon-gold) !important; }
