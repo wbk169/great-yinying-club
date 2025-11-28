@@ -1,62 +1,89 @@
-/* --- 基礎設定與字體 --- */
+/* --- 基礎設定與字體：深色模式啟動 --- */
 body {
-    font-family: 'Arial', 'Microsoft JhengHei', sans-serif;
+    font-family: 'Consolas', 'Microsoft JhengHei', sans-serif; /* 使用等寬字體增添科技感 */
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9; /* 淺灰色背景 */
-    color: #333;
+    background-color: #121212; /* 深黑色背景 */
+    color: #E0E0E0; /* 淺灰色文字 */
+    line-height: 1.6;
 }
 
+/* --- 頂部標頭：未來感設計 --- */
 header {
-    background-color: #002D56; /* 深藍色 - 類似MLB常見配色 */
-    color: #fff;
-    padding: 30px 20px;
+    background-color: #1F1F1F; /* 略淺的灰色，與背景區隔 */
+    padding: 40px 20px;
     text-align: center;
-    border-bottom: 5px solid #C41E3A; /* 紅色分隔線 - 棒球元素 */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    /* 這裡可以放老鷹的背景圖 */
-    /* background-image: url('eagle-banner.jpg'); */
-    /* background-size: cover; */
+    border-bottom: 2px solid #00FFFF; /* 螢光青色底部邊框 */
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); /* 輕微的霓虹光影效果 */
 }
 
 h1 {
-    font-size: 2.5em;
+    font-size: 3em;
     margin-bottom: 5px;
-    letter-spacing: 2px;
+    letter-spacing: 5px; /* 拉開字母間距，專業感 */
+    color: #FFFFFF;
+    /* 增加標題閃爍動畫，營造動態效果 */
+    animation: pulse 2s infinite alternate; 
 }
 
-/* --- 排名表格與分團設計 --- */
+@keyframes pulse {
+    from { text-shadow: 0 0 5px rgba(255, 255, 255, 0.7); }
+    to { text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF; }
+}
+
+/* --- 主要內容區 --- */
 main {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 20px;
+    max-width: 1400px;
+    margin: 50px auto;
+    padding: 0 30px;
 }
 
-.team-section {
-    margin-bottom: 40px;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.team-title {
-    padding: 10px 15px;
-    color: white;
-    font-size: 1.5em;
-    border-radius: 4px;
-    margin-top: 0;
-    margin-bottom: 20px;
+h2 {
     text-align: center;
+    color: #00FFFF;
+    margin-bottom: 40px;
+    font-size: 1.8em;
+    border-bottom: 1px dashed #333;
+    padding-bottom: 15px;
 }
 
-/* 針對不同團別設定不同顏色以區分：專業感 */
-.tier-1 { background-color: #C41E3A; /* 深紅色 - 冠軍色 */ }
-.tier-2 { background-color: #FF7F50; /* 珊瑚色 */ }
-.tier-3 { background-color: #008080; /* 青色 */ }
-.tier-4 { background-color: #FFD700; /* 金色 */ }
-.tier-5 { background-color: #800080; /* 紫色 */ }
+/* --- 排名卡片與分團設計：科技感容器 --- */
+.team-section {
+    margin-bottom: 30px;
+    background-color: #1F1F1F;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* 平滑轉場效果 */
+}
 
+/* 動態效果：滑鼠懸停時放大並產生藍色光影 */
+.team-section:hover {
+    transform: translateY(-5px); 
+    box-shadow: 0 10px 20px rgba(0, 255, 255, 0.4); 
+    border-color: #00FFFF;
+}
+
+/* 團標題：使用背景漸變和邊框增強專業度 */
+.team-title {
+    padding: 15px 20px;
+    font-size: 1.6em;
+    border-radius: 8px 8px 0 0;
+    margin: -20px -20px 20px -20px; /* 擴展到卡片邊緣 */
+    text-align: left;
+    color: #FFFFFF;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* 團別顏色 (使用更具科技感的冷色調) */
+.tier-1 { background: linear-gradient(90deg, #8A2BE2, #4B0082); /* 藍紫色漸變 - 頂級 */ }
+.tier-2 { background: linear-gradient(90deg, #1E90FF, #00BFFF); /* 天藍色漸變 */ }
+.tier-3 { background: linear-gradient(90deg, #00CED1, #20B2AA); /* 綠松石漸變 */ }
+.tier-4 { background: linear-gradient(90deg, #FFD700, #DAA520); /* 金色漸變 (保留高階感) */ }
+.tier-5 { background: linear-gradient(90deg, #FF6347, #FF4500); /* 亮紅色漸變 */ }
+
+/* --- 排名表格：清晰、專業、簡潔 --- */
 .ranking-table {
     width: 100%;
     border-collapse: collapse;
@@ -66,29 +93,36 @@ main {
 
 .ranking-table th, .ranking-table td {
     padding: 12px 15px;
-    border: 1px solid #ddd;
+    border: 1px solid #333; /* 使用淺邊框 */
 }
 
 .ranking-table thead th {
-    background-color: #002D56;
-    color: #fff;
+    background-color: #00FFFF; /* 螢光藍標頭 */
+    color: #121212; /* 黑色字體，高對比度 */
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.ranking-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9; /* 讓表格更易閱讀 */
+.ranking-table tbody tr {
+    transition: background-color 0.3s ease;
 }
 
+.ranking-table tbody tr:nth-child(even) {
+    background-color: #252525; /* 讓偶數行略深一點 */
+}
+
+/* 動態效果：滑鼠懸停時高亮，螢光藍色 */
 .ranking-table tbody tr:hover {
-    background-color: #ffe4e1; /* 滑過時的淡紅色效果 - 棒球隊熱情 */
+    background-color: #3A3A3A;
+    box-shadow: inset 3px 0 0 #00FFFF; /* 左側藍色高亮線條 */
 }
 
 /* --- 頁尾 --- */
 footer {
     text-align: center;
     padding: 20px;
-    background-color: #333;
-    color: #fff;
-    margin-top: 40px;
+    background-color: #1F1F1F;
+    color: #888;
+    margin-top: 50px;
+    border-top: 1px solid #333;
 }

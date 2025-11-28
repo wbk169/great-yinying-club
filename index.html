@@ -8,54 +8,59 @@
 </head>
 <body>
     <header>
-        <h1>大陰帝國俱樂部 | 戰力分團排名</h1>
-        <p>MLB：九局職棒25 - 官方排名公佈</p>
+        <h1>🦅 大陰帝國俱樂部 2025 ⚾</h1>
+        <p>MLB：九局職棒25 | 官方戰力分團排名</p>
     </header>
 
     <main>
-        <h2>每月戰力分團總覽 | 更新日期：YYYY/MM/DD</h2>
+        <h2>戰力排名總覽 | 更新日期：<span id="update-date">載入中...</span></h2>
         
         <section class="team-section">
-            <h3 class="team-title tier-1">一團 | 大陰帝國 (排名 1-20)</h3>
-            <table id="team1-rankings" class="ranking-table">
-                <thead>
-                    <tr>
-                        <th>排名</th>
-                        <th>帳號名稱</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>1</td><td>大陰帝國-隊長</td></tr>
-                    <tr><td>2</td><td>帳號名A</td></tr>
-                    </tbody>
+            <h3 class="team-title tier-1">一團 | 大陰帝國 (Top 1-20)</h3>
+            <table class="ranking-table">
+                <thead><tr><th>排名</th><th>帳號名稱</th><th>總強度排名</th></tr></thead>
+                <tbody id="team1-body"></tbody>
             </table>
         </section>
 
         <section class="team-section">
-            <h3 class="team-title tier-2">二團 | 大陰帝國-稽查菊 (排名 21-40)</h3>
-            <table id="team2-rankings" class="ranking-table">
-                </table>
+            <h3 class="team-title tier-2">二團 | 大陰帝國-稽查菊 (Top 21-40)</h3>
+            <table class="ranking-table">
+                <thead><tr><th>排名</th><th>帳號名稱</th><th>總強度排名</th></tr></thead>
+                <tbody id="team2-body"></tbody>
+            </table>
+        </section>
+
+        <section class="team-section">
+            <h3 class="team-title tier-3">三團 | 大陰帝國-手入與支出 (Top 41-60)</h3>
+            <table class="ranking-table">
+                <thead><tr><th>排名</th><th>帳號名稱</th><th>總強度排名</th></tr></thead>
+                <tbody id="team3-body"></tbody>
+            </table>
         </section>
         
         <section class="team-section">
-            <h3 class="team-title tier-3">三團 | 大陰帝國-手入與支出 (排名 41-60)</h3>
-            <table id="team3-rankings" class="ranking-table"></table>
+            <h3 class="team-title tier-4">四團 | 大陰帝國-抽查桃稅 (Top 61-80)</h3>
+            <table class="ranking-table">
+                <thead><tr><th>排名</th><th>帳號名稱</th><th>總強度排名</th></tr></thead>
+                <tbody id="team4-body"></tbody>
+            </table>
         </section>
-        
+
         <section class="team-section">
-            <h3 class="team-title tier-4">四團 | 大陰帝國-抽查桃稅 (排名 61-80)</h3>
-            <table id="team4-rankings" class="ranking-table"></table>
-        </section>
-        
-        <section class="team-section">
-            <h3 class="team-title tier-5">五團 | 大陰帝國-天龍特攻隊 (排名 81-100)</h3>
-            <table id="team5-rankings" class="ranking-table"></table>
+            <h3 class="team-title tier-5">五團 | 大陰帝國-天龍特攻隊 (Top 81-100)</h3>
+            <table class="ranking-table">
+                <thead><tr><th>排名</th><th>帳號名稱</th><th>總強度排名</th></tr></thead>
+                <tbody id="team5-body"></tbody>
+            </table>
         </section>
 
     </main>
 
+    <script src="script.js"></script>
+
     <footer>
-        <p>&copy; 2025 大陰帝國俱樂部版權所有</p>
+        <p>&copy; 2025 大陰帝國俱樂部 | Designed for Victory</p>
     </footer>
 </body>
 </html>
