@@ -1,15 +1,16 @@
 // 設定檔案路徑
 const CSV_FILE_PATH = 'rankings.csv';
 
-// NPC 設定區
+// 🟢【NPC 設定區】🟢
 const NPC_LIST = {
     1: [], 
     2: [],
-    3: ['未入團強力路人1', '未入團強力路人2', ], 
-    4: ['未入團強力路人3'], 
+    3: ['未入團強力路人1', '未入團強力路人2', '未入團強力路人3', '未入團強力路人4'], 
+    4: ['未入團強力路人5'], 
     5: []
 };
 
+// 團別與容器設定
 const TEAM_CONFIG = {
     1: { name: '大陰帝國', id: 'team1-body' },
     2: { name: '大陰帝國-稽查菊', id: 'team2-body' },
@@ -19,16 +20,12 @@ const TEAM_CONFIG = {
 };
 
 // ==========================================
-// 🚀 特效邏輯整合
+// 🚀 特效 1：駭客文字解碼
 // ==========================================
-
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-
-// 1. 駭客文字解碼 (Hacker Decode)
 function hackEffect(element) {
     let iterations = 0;
     const originalText = element.dataset.value || element.innerText; 
-    // 保存原始文字到 dataset 以便重複使用
     if(!element.dataset.value) element.dataset.value = originalText;
 
     const interval = setInterval(() => {
@@ -38,24 +35,23 @@ function hackEffect(element) {
                 return letters[Math.floor(Math.random() * 43)];
             })
             .join("");
-        
         if(iterations >= originalText.length) clearInterval(interval);
-        iterations += 1 / 2; // 調整速度
+        iterations += 1 / 2; 
     }, 30);
 }
 
-// 2. 磁吸按鈕效果 (Magnetic Effect) - 應用於標題
+// ==========================================
+// 🚀 特效 2：磁吸按鈕
+// ==========================================
 function initMagnetic() {
-    if (window.innerWidth < 768) return; // 手機關閉
+    if (window.innerWidth < 768) return; 
     const magnets = document.querySelectorAll('.team-title');
-
     magnets.forEach(magnet => {
-        magnet.classList.add('magnetic-target'); // 確保 CSS transition 生效
+        magnet.classList.add('magnetic-target'); 
         magnet.addEventListener('mousemove', (e) => {
             const rect = magnet.getBoundingClientRect();
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
-            // 磁力強度
             magnet.style.transform = `translate(${x * 0.3}px, ${y * 0.5}px)`;
         });
         magnet.addEventListener('mouseleave', () => {
@@ -64,56 +60,57 @@ function initMagnetic() {
     });
 }
 
-// 3. 滾動偵測：進度條 & 標題解碼
+// ==========================================
+// 🚀 特效 3：滾動偵測
+// ==========================================
 function initScrollEffects() {
     const progressBar = document.getElementById('progressBar');
     const titles = document.querySelectorAll('.team-title');
     
-    // 預先設定好 Observer 來觸發標題解碼
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                hackEffect(entry.target); // 進入畫面時解碼
-                observer.unobserve(entry.target); // 只觸發一次
+                hackEffect(entry.target); 
+                observer.unobserve(entry.target); 
             }
         });
     }, { threshold: 0.5 });
 
     titles.forEach(title => observer.observe(title));
 
-    // 滾動監聽
     window.addEventListener('scroll', () => {
-        // 進度條
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         const scrolled = (winScroll / height) * 100;
-        progressBar.style.width = scrolled + "%";
+        if(progressBar) progressBar.style.width = scrolled + "%";
     });
 }
 
-// 4. 游標與聚光燈追蹤
-function initCursor() {
-    if (window.innerWidth < 768) return;
-    const cursorDot = document.querySelector('[data-cursor-dot]');
-    const cursorOutline = document.querySelector('[data-cursor-outline]');
-    const body = document.body;
+// ==========================================
+// 🚀 特效 4：實時數據監控
+// ==========================================
+function updateSysMonitor() {
+    const monitor = document.getElementById('sysMonitor');
+    if (!monitor) return;
+    const fps = Math.floor(Math.random() * (60 - 55 + 1)) + 55; 
+    const ping = Math.floor(Math.random() * (30 - 10 + 1)) + 10; 
+    const mem = Math.floor(Math.random() * (45 - 30 + 1)) + 30; 
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
 
-    window.addEventListener("mousemove", function (e) {
-        const posX = e.clientX;
-        const posY = e.clientY;
-        
-        // 更新游標位置
-        cursorDot.style.left = `${posX}px`;
-        cursorDot.style.top = `${posY}px`;
-        cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 400, fill: "forwards" });
-
-        // 更新聚光燈變數
-        body.style.setProperty('--x', `${posX}px`);
-        body.style.setProperty('--y', `${posY}px`);
-    });
+    monitor.innerHTML = `
+        SYS_TIME: ${timeStr}<br>
+        FPS: ${fps}<br>
+        PING: ${ping}ms<br>
+        MEM: ${mem}%<br>
+        STATUS: ONLINE
+    `;
 }
+setInterval(updateSysMonitor, 1000);
 
-// 5. 系統啟動畫面
+// ==========================================
+// 🚀 特效 5：系統啟動畫面 (已修復文字)
+// ==========================================
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
@@ -121,7 +118,7 @@ function runBootSequence() {
         "INITIALIZING SYSTEM...",
         "LOADING KERNEL MODULES...",
         "CONNECTING TO MLB DATABASE...",
-        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", // ✨ 這裡加回來了！
+        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", // ✨ 這裡補回來了！
         "ACCESS GRANTED.",
         "SYSTEM ONLINE."
     ];
@@ -145,10 +142,10 @@ function runBootSequence() {
 }
 
 // ==========================================
-// 主程式
+// 🚀 主程式：讀取 CSV 並渲染
 // ==========================================
 async function loadRankings() {
-    runBootSequence();
+    runBootSequence(); // 執行開場
 
     try {
         const response = await fetch(CSV_FILE_PATH);
@@ -179,13 +176,21 @@ async function loadRankings() {
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
             const tableBody = document.getElementById(TEAM_CONFIG[teamNum].id);
             if (!tableBody) continue;
+            
+            // ✨✨✨【關鍵修復】✨✨✨
+            // 在填入資料前，先清空表格！防止重複渲染
+            tableBody.innerHTML = ''; 
+
             let currentTeamCount = 0; 
             const MAX_PER_TEAM = 20;  
 
+            // A. 團長
             if (teamNum === 1 && leaderData) {
                 renderRow(tableBody, leaderData, globalRankCounter);
                 currentTeamCount++; globalRankCounter++;
             }
+
+            // B. NPC
             const npcs = NPC_LIST[teamNum] || [];
             npcs.forEach(npcName => {
                 if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) {
@@ -193,22 +198,27 @@ async function loadRankings() {
                     currentTeamCount++; globalRankCounter++;
                 }
             });
+
+            // C. 自願降團
             if (teamNum === 5) {
                 while (demotedList.length > 0) {
                     renderRow(tableBody, demotedList.shift(), globalRankCounter);
                     currentTeamCount++; globalRankCounter++;
                 }
             }
+
+            // D. 排隊名單
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) {
                 renderRow(tableBody, waitingList.shift(), globalRankCounter);
                 currentTeamCount++; globalRankCounter++;
             }
         }
 
-        // 初始化所有特效
+        // 初始化特效
         initCursor();
-        initScrollEffects(); // 包含進度條與標題解碼
-        setTimeout(initMagnetic, 1000); // 延遲一下再啟動磁吸
+        initScrollEffects(); 
+        updateSysMonitor();
+        setTimeout(initMagnetic, 1000); 
 
         const today = new Date();
         document.getElementById('update-date').textContent = 
@@ -255,36 +265,22 @@ function renderRow(container, player, rank) {
     container.appendChild(tr);
 }
 
-loadRankings();
-// ... (保留上面所有的程式碼)
+// 游標與聚光燈
+function initCursor() {
+    if (window.innerWidth < 768) return;
+    const cursorDot = document.querySelector('[data-cursor-dot]');
+    const cursorOutline = document.querySelector('[data-cursor-outline]');
+    const body = document.body;
 
-loadRankings();
-
-// ==========================================
-// 🚀 特效 4：實時數據監控 (System Monitor)
-// ==========================================
-function updateSysMonitor() {
-    const monitor = document.getElementById('sysMonitor');
-    if (!monitor) return;
-
-    // 模擬數據跳動
-    const fps = Math.floor(Math.random() * (60 - 55 + 1)) + 55; // FPS 55-60
-    const ping = Math.floor(Math.random() * (30 - 10 + 1)) + 10; // Ping 10-30ms
-    const mem = Math.floor(Math.random() * (45 - 30 + 1)) + 30; // Mem 30-45%
-    
-    // 獲取當前時間 HH:MM:SS
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
-
-    monitor.innerHTML = `
-        SYS_TIME: ${timeStr}<br>
-        FPS: ${fps}<br>
-        PING: ${ping}ms<br>
-        MEM: ${mem}%<br>
-        STATUS: ONLINE
-    `;
+    window.addEventListener("mousemove", function (e) {
+        const posX = e.clientX;
+        const posY = e.clientY;
+        cursorDot.style.left = `${posX}px`;
+        cursorDot.style.top = `${posY}px`;
+        cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 400, fill: "forwards" });
+        body.style.setProperty('--x', `${posX}px`);
+        body.style.setProperty('--y', `${posY}px`);
+    });
 }
 
-// 每秒更新一次數據
-setInterval(updateSysMonitor, 1000);
-updateSysMonitor();
+loadRankings();
