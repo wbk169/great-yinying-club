@@ -1,6 +1,4 @@
-// ==========================================
-// 1. 設定與變數定義
-// ==========================================
+// 設定檔案路徑
 const CSV_FILE_PATH = 'rankings.csv';
 
 // NPC 設定
@@ -22,7 +20,7 @@ const TEAM_CONFIG = {
 };
 
 // ==========================================
-// 2. 網站視覺特效 (Hacker, Magnetic, Scroll)
+// 網站視覺特效
 // ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
 
@@ -107,7 +105,6 @@ setInterval(updateSysMonitor, 1000);
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
-    // 如果找不到啟動畫面元素，直接返回
     if (!textElement || !bootScreen) return;
 
     const logs = [
@@ -158,7 +155,7 @@ function initCursor() {
 }
 
 // ==========================================
-// 3. 核心功能：讀取 CSV 並渲染表格
+// 排名資料渲染
 // ==========================================
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr');
@@ -167,11 +164,9 @@ function renderRow(container, player, rank) {
     let displayRank = `#${rank}`;
     let displayScore = `(PR: ${player.score})`;
     
-    // 依據身份添加 Class
     if (player.isLeader) {
         tr.classList.add('row-leader');
-        displayRank = '#1'; 
-        displayScore = '👑 大陰團長';
+        displayRank = '#1'; displayScore = '👑 大陰團長';
     } else if (player.isNPC) {
         tr.classList.add('row-npc');
         displayScore = '⚡ 強力NPC'; 
@@ -209,13 +204,9 @@ async function loadRankings() {
             const note = columns[3] ? columns[3].trim() : ""; 
             const playerData = { name: name, score: score, isLeader: false, isNPC: false, isDemoted: false };
 
-            if (name === '陰帝') {
-                leaderData = playerData; leaderData.isLeader = true;
-            } else if (note.includes('自願降團')) {
-                playerData.isDemoted = true; demotedList.push(playerData);
-            } else {
-                waitingList.push(playerData);
-            }
+            if (name === '陰帝') { leaderData = playerData; leaderData.isLeader = true; } 
+            else if (note.includes('自願降團')) { playerData.isDemoted = true; demotedList.push(playerData); } 
+            else { waitingList.push(playerData); }
         });
 
         let globalRankCounter = 1; 
@@ -224,21 +215,14 @@ async function loadRankings() {
             const config = TEAM_CONFIG[teamNum];
             const tableBody = document.getElementById(config.id);
             if (!tableBody) continue;
-            
             const section = tableBody.closest('.team-section');
             if (section) section.classList.add(config.theme);
-
             tableBody.innerHTML = ''; 
 
             let currentTeamCount = 0; 
             const MAX_PER_TEAM = 20;  
 
-            // A. 團長
-            if (teamNum === 1 && leaderData) {
-                renderRow(tableBody, leaderData, globalRankCounter);
-                currentTeamCount++; globalRankCounter++;
-            }
-            // B. NPC
+            if (teamNum === 1 && leaderData) { renderRow(tableBody, leaderData, globalRankCounter); currentTeamCount++; globalRankCounter++; }
             const npcs = NPC_LIST[teamNum] || [];
             npcs.forEach(npcName => {
                 if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) {
@@ -246,14 +230,9 @@ async function loadRankings() {
                     currentTeamCount++; globalRankCounter++;
                 }
             });
-            // C. 自願降團
             if (teamNum === 5) {
-                while (demotedList.length > 0) {
-                    renderRow(tableBody, demotedList.shift(), globalRankCounter);
-                    currentTeamCount++; globalRankCounter++;
-                }
+                while (demotedList.length > 0) { renderRow(tableBody, demotedList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
             }
-            // D. 排隊名單
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) {
                 renderRow(tableBody, waitingList.shift(), globalRankCounter);
                 currentTeamCount++; globalRankCounter++;
@@ -276,7 +255,7 @@ async function loadRankings() {
 }
 
 // ==========================================
-// 4. 🎮 V9.0 系統防禦戰 (遊戲引擎)
+// 🎮 遊戲引擎 V10.0 (戰爭模式)
 // ==========================================
 
 const canvas = document.getElementById('game-canvas');
@@ -295,11 +274,12 @@ let gameRunning = false;
 let score = 0;
 let maxHp = 100;
 let currentHp = 100;
-let clickDamage = 5; // 初始傷害
+let clickDamage = 1; // 初始傷害
 let enemies = [];
 let particles = [];
 let turrets = [];
 let bullets = [];
+let powerups = [];
 let bossSpawned = false;
 let animationFrameId;
 let spawnInterval;
@@ -320,11 +300,11 @@ class Enemy {
         this.type = type;
         
         if (type === 'boss') {
-            this.size = 80; this.hp = 100; this.maxHp = 100; this.speed = 0.5; this.color = '#ffd700'; this.scoreValue = 1000;
+            this.size = 80; this.hp = 150; this.maxHp = 150; this.speed = 0.5; this.color = '#ffd700'; this.scoreValue = 1000;
         } else if (type === 'tank') {
             this.size = 40; this.hp = 10; this.maxHp = 10; this.speed = 1; this.color = '#bc13fe'; this.scoreValue = 50;
         } else {
-            this.size = 25; this.hp = 1; this.maxHp = 1; this.speed = isMobile ? 1.5 : 2; this.color = '#ff2a2a'; this.scoreValue = 10;
+            this.size = 25; this.hp = 1; this.maxHp = 1; this.speed = isMobile ? 1.5 : 2.5; this.color = '#ff2a2a'; this.scoreValue = 10;
         }
 
         if (Math.random() > 0.5) {
@@ -357,7 +337,7 @@ class Enemy {
         ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
         ctx.globalAlpha = 1.0;
         if (this.maxHp > 1) {
-            const hpPercent = this.hp / this.maxHp;
+            const hpPercent = Math.max(0, this.hp / this.maxHp);
             ctx.fillStyle = 'red'; ctx.fillRect(this.x - this.size/2, this.y - this.size/2 - 10, this.size, 4);
             ctx.fillStyle = '#00ff00'; ctx.fillRect(this.x - this.size/2, this.y - this.size/2 - 10, this.size * hpPercent, 4);
         }
@@ -415,7 +395,7 @@ function createParticles(x, y, color, count = 10) {
 function takeDamage(amount) {
     currentHp -= amount;
     hpBar.style.width = `${Math.max(0, (currentHp / maxHp) * 100)}%`;
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height); // 受傷紅閃
     if (currentHp <= 0) gameOver();
 }
 
@@ -424,20 +404,41 @@ function gameOver() {
     alert(`系統崩潰！你的最終得分: ${score}\n請重新修復系統。`);
 }
 
+// ⚠️ 調整過的生成邏輯 (高強度)
 function spawnLogic() {
     if (!gameRunning) return;
-    if (Math.random() < 0.05 + (score/10000)) enemies.push(new Enemy(Math.random() > 0.8 ? 'tank' : 'normal'));
-    if (score > 500 && score % 1000 < 50 && !bossSpawned && enemies.length < 5) {
-        enemies.push(new Enemy('boss')); bossSpawned = true;
-        showGameMsg("WARNING: BOSS DETECTED", canvas.width/2, canvas.height/2, '#ff0000');
+    
+    // 基礎生成率：50% + 分數加成
+    let spawnChance = 0.5 + (score / 5000);
+    
+    if (Math.random() < spawnChance) {
+        // 分數越高，一次可能生多隻
+        let count = 1;
+        if(score > 1000) count = 2;
+        if(score > 3000) count = 3;
+        
+        for(let i=0; i<count; i++) {
+            enemies.push(new Enemy(Math.random() > 0.8 ? 'tank' : 'normal'));
+        }
+        
+        // 生成提示特效 (畫面邊緣紅光)
+        canvas.style.boxShadow = "inset 0 0 20px rgba(255,0,0,0.5)";
+        setTimeout(() => canvas.style.boxShadow = "none", 200);
     }
-    if (score % 1000 > 100) bossSpawned = false;
+
+    // BOSS 生成
+    if (score > 500 && score % 2000 < 100 && !bossSpawned && enemies.length < 10) {
+        enemies.push(new Enemy('boss')); bossSpawned = true;
+        showGameMsg("⚠️ WARNING: BOSS DETECTED", canvas.width/2, canvas.height/2, '#ff0000');
+    }
+    if (score % 2000 > 200) bossSpawned = false;
 }
 
 function gameLoop() {
     if (!gameRunning) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 核心
     ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 20, 0, Math.PI*2); ctx.stroke();
     ctx.font = "10px Arial"; ctx.fillStyle = "#00f3ff"; ctx.fillText("CORE", canvas.width/2 - 15, canvas.height/2 + 4);
@@ -462,16 +463,24 @@ function gameLoop() {
 function handleInput(x, y) {
     if (!gameRunning) return;
     createParticles(x, y, '#ffffff', 5);
-    const hitRadius = isMobile ? 120 : 50;
+    // 增大判定範圍
+    const hitRadius = isMobile ? 120 : 60;
+    
     enemies.forEach(e => {
         const dist = Math.hypot(e.x - x, e.y - y);
         if (dist < hitRadius + e.size) {
-            e.hp -= clickDamage; e.x -= e.vx * 5; e.y -= e.vy * 5;
+            e.hp -= clickDamage;
+            // 擊退效果
+            e.x -= e.vx * 10;
+            e.y -= e.vy * 10;
+            
+            // 擊中特效
+            createParticles(e.x, e.y, '#fff', 2);
         }
     });
 }
 
-// 商店函式 (綁定到 window 以便 HTML onclick 呼叫)
+// 商店函式
 window.buyItem = function(type) {
     if (!gameRunning) return;
     let cost = 0;
@@ -481,9 +490,9 @@ window.buyItem = function(type) {
 
     if (score >= cost) {
         score -= cost; scoreHud.innerText = `SCORE: ${score}`;
-        if (type === 'damage') { clickDamage += 2; showGameMsg("火力升級!", canvas.width/2, canvas.height/2, '#00f3ff'); }
-        else if (type === 'turret') { turrets.push(new Turret(turrets.length * (Math.PI * 2 / 5))); showGameMsg("砲塔部屬!", canvas.width/2, canvas.height/2, '#00f3ff'); }
-        else if (type === 'repair') { currentHp = Math.min(currentHp + 30, maxHp); hpBar.style.width = `${(currentHp / maxHp) * 100}%`; showGameMsg("系統修復!", canvas.width/2, canvas.height/2, '#00ff00'); }
+        if (type === 'damage') { clickDamage += 2; showGameMsg("火力升級! DMG UP", canvas.width/2, canvas.height/2, '#00f3ff'); }
+        else if (type === 'turret') { turrets.push(new Turret(turrets.length * (Math.PI * 2 / 5))); showGameMsg("砲塔部屬! TURRET", canvas.width/2, canvas.height/2, '#00f3ff'); }
+        else if (type === 'repair') { currentHp = Math.min(currentHp + 30, maxHp); hpBar.style.width = `${(currentHp / maxHp) * 100}%`; showGameMsg("系統修復! REPAIR", canvas.width/2, canvas.height/2, '#00ff00'); }
     } else { showGameMsg("積分不足!", canvas.width/2, canvas.height/2, '#ff0000'); }
 };
 
@@ -504,9 +513,16 @@ function initGame() { gameModal.style.display = 'flex'; body.classList.add('game
 function startGame() {
     gameModal.style.display = 'none'; canvas.style.display = 'block'; shopUI.style.display = 'flex';
     integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
+    
+    // 初始化遊戲數據
     gameRunning = true; score = 0; scoreHud.innerText = "SCORE: 0"; currentHp = 100; hpBar.style.width = '100%';
     clickDamage = 5; enemies = []; turrets = []; bullets = []; particles = [];
-    spawnInterval = setInterval(spawnLogic, 1000);
+    
+    // 開局送怪
+    for(let i=0; i<5; i++) enemies.push(new Enemy());
+    
+    // 加快生成頻率 (600ms)
+    spawnInterval = setInterval(spawnLogic, 600);
     gameLoop();
 }
 function stopGame() {
@@ -520,5 +536,4 @@ if(startBtn) startBtn.addEventListener('click', initGame);
 if(modalStartBtn) modalStartBtn.addEventListener('click', startGame);
 if(stopBtn) stopBtn.addEventListener('click', stopGame);
 
-// 最終啟動
 loadRankings();
