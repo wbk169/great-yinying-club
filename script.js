@@ -19,30 +19,43 @@ async function loadRankings() {
         const rows = csvText.trim().split('\n').slice(1); // 去除標題列
 
         rows.forEach(row => {
-            // 解析 CSV: 排名, 帳號, 總分, 團名
+            // 解析 CSV
             const columns = row.split(',');
             if (columns.length < 3) return;
 
             const rank = parseInt(columns[0].trim());
             const name = columns[1].trim();
-            const score = columns[2].trim(); // 這裡的 score 是您原本的排名數字
+            const score = columns[2].trim();
 
-            // 自動判斷屬於哪一團
+            // --- 邏輯判斷區 ---
             let teamId = null;
-            if (rank <= 20) teamId = TEAM_CONFIG[1].id;
-            else if (rank <= 40) teamId = TEAM_CONFIG[2].id;
-            else if (rank <= 60) teamId = TEAM_CONFIG[3].id;
-            else if (rank <= 80) teamId = TEAM_CONFIG[4].id;
-            else teamId = TEAM_CONFIG[5].id;
+            let displayRank = `#${rank}`; // 預設顯示排名 (例如 #23)
+            let rankColor = '#00FFFF';    // 預設排名顏色 (螢光藍)
+            let nameStyle = '';           // 預設名字樣式
 
-            // 建立表格行
+            // 👑【團長霸王條款】
+            if (name === '陰帝') {
+                teamId = TEAM_CONFIG[1].id;       // 強制鎖定在一團
+                displayRank = '👑 大陰團長';      // 強制修改排名文字
+                rankColor = '#FFD700';            // 改成尊爵金色
+                nameStyle = 'color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-weight: bold;'; // 名字也發金光
+            } 
+            // 🛡️【一般平民分團邏輯】
+            else {
+                if (rank <= 20) teamId = TEAM_CONFIG[1].id;
+                else if (rank <= 40) teamId = TEAM_CONFIG[2].id;
+                else if (rank <= 60) teamId = TEAM_CONFIG[3].id;
+                else if (rank <= 80) teamId = TEAM_CONFIG[4].id;
+                else teamId = TEAM_CONFIG[5].id;
+            }
+
+            // --- 生成表格 ---
             if (teamId) {
                 const tr = document.createElement('tr');
-                // 加入一點延遲動畫效果
-                tr.style.animation = `fadeIn 0.5s ease forwards`; 
+                tr.style.animation = `fadeIn 0.5s ease forwards`;
                 tr.innerHTML = `
-                    <td style="font-weight:bold; color:#00FFFF;">#${rank}</td>
-                    <td>${name}</td>
+                    <td style="font-weight:bold; color:${rankColor}; white-space:nowrap;">${displayRank}</td>
+                    <td style="${nameStyle}">${name}</td>
                     <td style="color:#aaa; font-size:0.9em;">(PR: ${score})</td>
                 `;
                 document.getElementById(teamId).appendChild(tr);
@@ -59,5 +72,4 @@ async function loadRankings() {
     }
 }
 
-// 執行
 loadRankings();
