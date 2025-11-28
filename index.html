@@ -8,6 +8,13 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="game-canvas"></canvas>
+
+    <div class="game-ui-container">
+        <div id="game-hud" class="game-score-board">SCORE: 0</div>
+        <button id="start-game-btn" class="cy-btn">SYSTEM DEFENSE</button>
+        <button id="stop-game-btn" class="cy-btn danger" style="display: none;">EXIT MODE</button>
+    </div>
     <div class="crosshair-line crosshair-x"></div>
     <div class="crosshair-line crosshair-y"></div>
     <div class="scroll-progress-container">
