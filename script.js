@@ -10,9 +10,9 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
-// ==========================================
-// 網站視覺特效
-// ==========================================
+// ... (省略網站特效代碼：hackEffect, initMagnetic 等，請保持 V9.1 的這部分不變) ...
+// ⚠️ 為確保您複製方便，下方是包含特效與排名的完整代碼
+
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
 function hackEffect(element) {
     let iterations = 0;
@@ -120,7 +120,6 @@ function initCursor() {
     });
 }
 
-// 排名資料渲染
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr');
     tr.style.animation = `fadeIn 0.5s ease forwards`;
@@ -175,13 +174,12 @@ async function loadRankings() {
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     } catch (error) {
         console.error('讀取數據失敗:', error);
-        const bootScreen = document.getElementById('boot-screen');
-        if(bootScreen) bootScreen.style.display = 'none';
+        if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none';
     }
 }
 
 // ==========================================
-// 🎮 V10.1 遊戲引擎 (手機暴走版)
+// 🎮 V11.0 系統防禦戰：終極擴充版
 // ==========================================
 
 const canvas = document.getElementById('game-canvas');
@@ -210,6 +208,21 @@ let bossSpawned = false;
 let animationFrameId;
 let spawnInterval;
 let isMobile = window.innerWidth < 768;
+let shieldActive = false; // 護盾狀態
+
+// 🌟 10種怪物類型定義
+const ENEMY_TYPES = [
+    { name: 'Bug', color: '#ff2a2a', hp: 1, speed: 2.5, size: 20, score: 10 },        // Lv1: 紅色小怪
+    { name: 'Worm', color: '#ff7f50', hp: 2, speed: 3.0, size: 22, score: 20 },       // Lv2: 橘色快速
+    { name: 'Trojan', color: '#bc13fe', hp: 10, speed: 1.0, size: 35, score: 50 },    // Lv3: 紫色坦克
+    { name: 'Spyware', color: '#00ff00', hp: 5, speed: 2.0, size: 25, score: 30 },    // Lv4: 綠色
+    { name: 'Malware', color: '#00f3ff', hp: 8, speed: 1.5, size: 30, score: 40 },    // Lv5: 青色
+    { name: 'Ransom', color: '#ff00ff', hp: 15, speed: 1.2, size: 38, score: 60 },    // Lv6: 粉色硬怪
+    { name: 'Rootkit', color: '#ffffff', hp: 25, speed: 0.8, size: 45, score: 100 },  // Lv7: 白色巨像
+    { name: 'Botnet', color: '#888888', hp: 3, speed: 4.0, size: 15, score: 25 },     // Lv8: 灰色極速群
+    { name: 'Virus', color: '#ffd700', hp: 200, speed: 0.5, size: 80, score: 1000 },  // Lv9: 金色 BOSS
+    { name: 'ZeroDay', color: '#ff4757', hp: 500, speed: 0.4, size: 100, score: 5000 }// Lv10: 終極BOSS
+];
 
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -220,18 +233,25 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 class Enemy {
-    constructor(type = 'normal') {
-        this.type = type;
-        // ⚡ 手機版怪物變快
-        let baseSpeed = isMobile ? 2.2 : 2.5; 
+    constructor() {
+        // 根據分數決定怪物等級
+        let level = 0;
+        if(score > 200) level = Math.floor(Math.random() * 2);   // 0-1
+        if(score > 1000) level = Math.floor(Math.random() * 4);  // 0-3
+        if(score > 3000) level = Math.floor(Math.random() * 6);  // 0-5
+        if(score > 5000) level = Math.floor(Math.random() * 8);  // 0-7
         
-        if (type === 'boss') {
-            this.size = 80; this.hp = 150; this.maxHp = 150; this.speed = 0.5; this.color = '#ffd700'; this.scoreValue = 1000;
-        } else if (type === 'tank') {
-            this.size = 40; this.hp = 10; this.maxHp = 10; this.speed = 1; this.color = '#bc13fe'; this.scoreValue = 50;
-        } else {
-            this.size = 25; this.hp = 1; this.maxHp = 1; this.speed = baseSpeed; this.color = '#ff2a2a'; this.scoreValue = 10;
-        }
+        // BOSS 強制生成邏輯在 spawnLogic 處理，這裡只生小怪
+        let type = ENEMY_TYPES[level];
+        
+        this.typeStr = type.name;
+        this.size = type.size;
+        this.maxHp = type.hp;
+        this.hp = type.hp;
+        // 手機版速度稍微降低
+        this.speed = isMobile ? type.speed * 0.8 : type.speed;
+        this.color = type.color;
+        this.scoreValue = type.score;
 
         if (Math.random() > 0.5) {
             this.x = Math.random() > 0.5 ? -this.size : canvas.width + this.size;
@@ -247,21 +267,24 @@ class Enemy {
         this.vx = Math.cos(angle) * this.speed;
         this.vy = Math.sin(angle) * this.speed;
     }
+
     update() {
         this.x += this.vx; this.y += this.vy;
         const distToCenter = Math.hypot(this.x - canvas.width/2, this.y - canvas.height/2);
-        if (distToCenter < 50) { this.hp = 0; takeDamage(this.type === 'boss' ? 50 : 10); }
+        if (distToCenter < 50) { this.hp = 0; takeDamage(10); }
     }
+
     draw() {
-        ctx.strokeStyle = this.color; ctx.lineWidth = this.type === 'boss' ? 4 : 2;
+        ctx.strokeStyle = this.color; ctx.lineWidth = 2;
         ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
         ctx.fillStyle = this.color; ctx.globalAlpha = 0.2;
         ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
         ctx.globalAlpha = 1.0;
-        if (this.maxHp > 1) {
+        // 血條
+        if (this.maxHp > 1 && this.hp < this.maxHp) {
             const hpPercent = Math.max(0, this.hp / this.maxHp);
-            ctx.fillStyle = 'red'; ctx.fillRect(this.x - this.size/2, this.y - this.size/2 - 10, this.size, 4);
-            ctx.fillStyle = '#00ff00'; ctx.fillRect(this.x - this.size/2, this.y - this.size/2 - 10, this.size * hpPercent, 4);
+            ctx.fillStyle = 'red'; ctx.fillRect(this.x - this.size/2, this.y - this.size/2 - 5, this.size, 3);
+            ctx.fillStyle = '#00ff00'; ctx.fillRect(this.x - this.size/2, this.y - this.size/2 - 5, this.size * hpPercent, 3);
         }
     }
 }
@@ -315,6 +338,10 @@ function createParticles(x, y, color, count = 10) {
 }
 
 function takeDamage(amount) {
+    if(shieldActive) {
+        showGameMsg("BLOCKED!", canvas.width/2, canvas.height/2 - 50, '#00f3ff');
+        return; // 護盾無敵
+    }
     currentHp -= amount;
     hpBar.style.width = `${Math.max(0, (currentHp / maxHp) * 100)}%`;
     ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height); 
@@ -326,30 +353,36 @@ function gameOver() {
     alert(`系統崩潰！你的最終得分: ${score}\n請重新修復系統。`);
 }
 
-// ⚠️ 調整過的生成邏輯 (暴走模式)
 function spawnLogic() {
     if (!gameRunning) return;
     
-    // 基礎生成率提高到 70% + 分數加成
-    let spawnChance = 0.7 + (score / 3000);
-    
+    let spawnChance = 0.6 + (score / 3000);
     if (Math.random() < spawnChance) {
-        // 手機版：因為有 AOE，直接生一整群 (2~4隻)
-        // 電腦版：1~3隻
-        let baseCount = isMobile ? 2 : 1; 
-        if(score > 1000) baseCount += 1;
-        if(score > 3000) baseCount += 1;
+        let count = isMobile ? 2 : 1; 
+        if(score > 1000) count += 1;
+        if(score > 3000) count += 1;
         
-        for(let i=0; i<baseCount; i++) {
-            enemies.push(new Enemy(Math.random() > 0.8 ? 'tank' : 'normal'));
-        }
+        for(let i=0; i<count; i++) enemies.push(new Enemy());
         
         canvas.style.boxShadow = "inset 0 0 20px rgba(255,0,0,0.5)";
         setTimeout(() => canvas.style.boxShadow = "none", 200);
     }
 
-    if (score > 500 && score % 2000 < 100 && !bossSpawned && enemies.length < 15) {
-        enemies.push(new Enemy('boss')); bossSpawned = true;
+    // BOSS 生成 (Lv9 or Lv10)
+    if (score > 1000 && score % 2000 < 100 && !bossSpawned) {
+        // 分數高就出 Lv10 魔王
+        let bossType = score > 10000 ? ENEMY_TYPES[9] : ENEMY_TYPES[8];
+        let boss = new Enemy(); // 這裡只是為了建構物件，下面覆寫屬性
+        boss.type = 'boss';
+        boss.size = bossType.size;
+        boss.hp = bossType.hp;
+        boss.maxHp = bossType.hp;
+        boss.speed = bossType.speed;
+        boss.color = bossType.color;
+        boss.scoreValue = bossType.score;
+        
+        enemies.push(boss);
+        bossSpawned = true;
         showGameMsg("⚠️ WARNING: BOSS DETECTED", canvas.width/2, canvas.height/2, '#ff0000');
     }
     if (score % 2000 > 200) bossSpawned = false;
@@ -359,8 +392,15 @@ function gameLoop() {
     if (!gameRunning) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2;
+    ctx.strokeStyle = shieldActive ? '#00f3ff' : '#00f3ff';
+    ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 20, 0, Math.PI*2); ctx.stroke();
+    // 護盾特效
+    if(shieldActive) {
+        ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 60, 0, Math.PI*2); 
+        ctx.strokeStyle = `rgba(0, 243, 255, ${0.5 + Math.sin(Date.now()/200)*0.2})`; ctx.stroke();
+    }
+    
     ctx.font = "10px Arial"; ctx.fillStyle = "#00f3ff"; ctx.fillText("CORE", canvas.width/2 - 15, canvas.height/2 + 4);
 
     turrets.forEach(t => { t.update(); t.draw(); });
@@ -383,33 +423,69 @@ function gameLoop() {
 function handleInput(x, y) {
     if (!gameRunning) return;
     createParticles(x, y, '#ffffff', 5);
-    // ⚡ 手機 AOE 範圍加大
-    const hitRadius = isMobile ? 150 : 60;
+    const hitRadius = isMobile ? 120 : 60; // 範圍攻擊
     
     enemies.forEach(e => {
         const dist = Math.hypot(e.x - x, e.y - y);
         if (dist < hitRadius + e.size) {
             e.hp -= clickDamage;
-            e.x -= e.vx * 10;
-            e.y -= e.vy * 10;
+            e.x -= e.vx * 5; e.y -= e.vy * 5;
             createParticles(e.x, e.y, '#fff', 2);
         }
     });
 }
 
+// 🌟 6種商品的商店邏輯
 window.buyItem = function(type) {
     if (!gameRunning) return;
     let cost = 0;
     if (type === 'damage') cost = 500;
     if (type === 'turret') cost = 2000;
-    if (type === 'repair') cost = 1000;
+    if (type === 'repair') cost = 800;
+    if (type === 'maxhp') cost = 1500;
+    if (type === 'shield') cost = 3000;
+    if (type === 'emp') cost = 5000;
 
     if (score >= cost) {
         score -= cost; scoreHud.innerText = `SCORE: ${score}`;
-        if (type === 'damage') { clickDamage += 2; showGameMsg("火力升級! DMG UP", canvas.width/2, canvas.height/2, '#00f3ff'); }
-        else if (type === 'turret') { turrets.push(new Turret(turrets.length * (Math.PI * 2 / 5))); showGameMsg("砲塔部屬! TURRET", canvas.width/2, canvas.height/2, '#00f3ff'); }
-        else if (type === 'repair') { currentHp = Math.min(currentHp + 30, maxHp); hpBar.style.width = `${(currentHp / maxHp) * 100}%`; showGameMsg("系統修復! REPAIR", canvas.width/2, canvas.height/2, '#00ff00'); }
-    } else { showGameMsg("積分不足!", canvas.width/2, canvas.height/2, '#ff0000'); }
+        
+        if (type === 'damage') { 
+            clickDamage += 5; 
+            showGameMsg("火力UP! DMG++", canvas.width/2, canvas.height/2, '#00f3ff'); 
+        }
+        else if (type === 'turret') { 
+            turrets.push(new Turret(turrets.length * (Math.PI * 2 / 5))); 
+            showGameMsg("砲塔部屬!", canvas.width/2, canvas.height/2, '#00f3ff'); 
+        }
+        else if (type === 'repair') { 
+            currentHp = Math.min(currentHp + 50, maxHp); 
+            hpBar.style.width = `${(currentHp / maxHp) * 100}%`; 
+            showGameMsg("修復完成!", canvas.width/2, canvas.height/2, '#00ff00'); 
+        }
+        else if (type === 'maxhp') { 
+            maxHp += 50; currentHp += 50; 
+            hpBar.style.width = `${(currentHp / maxHp) * 100}%`; 
+            showGameMsg("核心擴充! HP UP", canvas.width/2, canvas.height/2, '#ffd700'); 
+        }
+        else if (type === 'shield') { 
+            shieldActive = true; 
+            showGameMsg("護盾啟動! (10s)", canvas.width/2, canvas.height/2, '#00f3ff');
+            document.getElementById('hp-bar').classList.add('shield-bar');
+            setTimeout(() => { 
+                shieldActive = false; 
+                showGameMsg("護盾失效!", canvas.width/2, canvas.height/2, '#ff0000');
+                document.getElementById('hp-bar').classList.remove('shield-bar');
+            }, 10000); // 10秒無敵
+        }
+        else if (type === 'emp') { 
+            score += enemies.length * 100;
+            enemies = []; // 清空敵人
+            ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width, canvas.height); // 閃光
+            showGameMsg("EMP 衝擊釋放!", canvas.width/2, canvas.height/2, '#ff2a2a'); 
+        }
+    } else { 
+        showGameMsg("積分不足!", canvas.width/2, canvas.height/2, '#ff0000'); 
+    }
 };
 
 function showGameMsg(text, x, y, color) {
@@ -427,16 +503,16 @@ canvas.addEventListener('touchstart', (e) => {
 
 function initGame() { gameModal.style.display = 'flex'; body.classList.add('game-active'); }
 function startGame() {
-    gameModal.style.display = 'none'; canvas.style.display = 'block'; shopUI.style.display = 'flex';
+    gameModal.style.display = 'none'; canvas.style.display = 'block'; 
+    shopUI.style.display = 'grid'; // 網格顯示
     integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
-    gameRunning = true; score = 0; scoreHud.innerText = "SCORE: 0"; currentHp = 100; hpBar.style.width = '100%';
-    clickDamage = 5; enemies = []; turrets = []; bullets = []; particles = [];
     
-    // 開局直接送 5 隻
+    gameRunning = true; score = 0; scoreHud.innerText = "SCORE: 0"; 
+    maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
+    clickDamage = 10; enemies = []; turrets = []; bullets = []; particles = []; shieldActive = false;
+    
     for(let i=0; i<5; i++) enemies.push(new Enemy());
-    
-    // ⚡ 超高速生成 (0.4秒)
-    spawnInterval = setInterval(spawnLogic, 400);
+    spawnInterval = setInterval(spawnLogic, 400); // 0.4s 生成
     gameLoop();
 }
 function stopGame() {
