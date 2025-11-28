@@ -253,3 +253,169 @@ footer {
     font-size: 0.8em;
     letter-spacing: 2px;
 }
+
+/* ✨ 新增：系統啟動畫面 (Boot Screen) */
+#boot-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 10000; /* 確保蓋在最上面 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Consolas', monospace;
+    color: var(--neon-cyan);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#terminal-text {
+    width: 100%;
+    max-width: 600px;
+    font-size: 1.2em;
+    line-height: 1.5;
+    white-space: pre-wrap; /* 保留換行 */
+}
+
+/* 閃爍的游標 */
+.blink-cursor::after {
+    content: '█';
+    animation: blink 0.8s infinite;
+    margin-left: 5px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ✨ 新增：3D 全息卡片效果 (僅限桌面版) */
+/* 預設是平面，JavaScript 會動態添加 style */
+.team-section {
+    transform-style: preserve-3d; /* 開啟 3D 空間 */
+    perspective: 1000px;
+}
+
+/* 卡片上的光澤層 */
+.hologram-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* ✨ 新增：駭客文字特效樣式 */
+.hacker-text {
+    display: inline-block;
+    font-family: 'Consolas', monospace;
+    cursor: crosshair;
+}
+
+/* 📱 手機版優化 (RWD) */
+@media (max-width: 768px) {
+    /* 手機上標題小一點 */
+    h1 { font-size: 2.5em; letter-spacing: 2px; }
+    
+    /* 手機上關閉 3D 傾斜，避免滑動時卡頓 */
+    .team-section {
+        transform: none !important; 
+        transition: transform 0.3s ease !important;
+    }
+    
+    /* 手機版啟動文字小一點 */
+    #terminal-text { font-size: 0.9em; }
+    
+    /* 調整表格內距，避免太擠 */
+    .ranking-table td { padding: 12px 10px; font-size: 0.95em; }
+    
+    /* 手機隱藏自定義游標 (因為沒有滑鼠) */
+    .cursor-dot, .cursor-outline { display: none; }
+}/* ✨ 新增：系統啟動畫面 (Boot Screen) */
+#boot-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 10000; /* 確保蓋在最上面 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Consolas', monospace;
+    color: var(--neon-cyan);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#terminal-text {
+    width: 100%;
+    max-width: 600px;
+    font-size: 1.2em;
+    line-height: 1.5;
+    white-space: pre-wrap; /* 保留換行 */
+}
+
+/* 閃爍的游標 */
+.blink-cursor::after {
+    content: '█';
+    animation: blink 0.8s infinite;
+    margin-left: 5px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ✨ 新增：3D 全息卡片效果 (僅限桌面版) */
+/* 預設是平面，JavaScript 會動態添加 style */
+.team-section {
+    transform-style: preserve-3d; /* 開啟 3D 空間 */
+    perspective: 1000px;
+}
+
+/* 卡片上的光澤層 */
+.hologram-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* ✨ 新增：駭客文字特效樣式 */
+.hacker-text {
+    display: inline-block;
+    font-family: 'Consolas', monospace;
+    cursor: crosshair;
+}
+
+/* 📱 手機版優化 (RWD) */
+@media (max-width: 768px) {
+    /* 手機上標題小一點 */
+    h1 { font-size: 2.5em; letter-spacing: 2px; }
+    
+    /* 手機上關閉 3D 傾斜，避免滑動時卡頓 */
+    .team-section {
+        transform: none !important; 
+        transition: transform 0.3s ease !important;
+    }
+    
+    /* 手機版啟動文字小一點 */
+    #terminal-text { font-size: 0.9em; }
+    
+    /* 調整表格內距，避免太擠 */
+    .ranking-table td { padding: 12px 10px; font-size: 0.95em; }
+    
+    /* 手機隱藏自定義游標 (因為沒有滑鼠) */
+    .cursor-dot, .cursor-outline { display: none; }
+}
