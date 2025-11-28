@@ -130,7 +130,7 @@ async function loadRankings() {
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
 
-// 🎮 V17.0 Game Engine
+// 🎮 V18.0 Game Engine: 屍潮模式 (Horde Mode)
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('start-game-btn');
@@ -145,7 +145,7 @@ const gameModal = document.getElementById('game-start-modal');
 const body = document.body;
 
 let gameRunning = false, gamePaused = false;
-let score = 0, gold = 0; // 🌟 新增 gold
+let score = 0, gold = 0;
 let maxHp = 100, currentHp = 100;
 let enemies = [], particles = [], bullets = [], turrets = [], missiles = [], lasers = [], lightnings = [];
 let bossSpawned = false, animationFrameId, spawnInterval, autoWeaponInterval;
@@ -172,12 +172,30 @@ function updateHud() {
     scoreHud.innerHTML = `SCORE: ${score}<br><span class="gold-text">🪙: ${gold}</span>`;
 }
 
+// 🌟 V18.0 更新：Enemy 類別支援強制指定等級
 class Enemy {
-    constructor() {
-        let difficulty = Math.floor(score / 2000), level = Math.min(Math.floor(Math.random() * (difficulty + 2)), 9);
+    constructor(forcedLevel = null) {
+        let level;
+        if (forcedLevel !== null) {
+            level = forcedLevel; // 強制生成指定等級的怪 (例如雜魚)
+        } else {
+            // 原本的隨機強度邏輯
+            let difficulty = 0;
+            if(score > 500) difficulty = 2;
+            if(score > 1500) difficulty = 4;
+            if(score > 3000) difficulty = 6;
+            if(score > 5000) difficulty = 8;
+            level = Math.min(Math.floor(Math.random() * (difficulty + 1)), 9);
+        }
+
         let type = ENEMY_TYPES[level];
-        this.size = type.size; this.maxHp = type.hp * (1 + difficulty * 0.1); this.hp = this.maxHp;
-        this.speed = isMobile ? type.speed * 0.7 : type.speed; this.color = type.color; this.scoreValue = type.score;
+        this.size = type.size; 
+        this.maxHp = type.hp * (1 + (score/5000) * 0.5); 
+        this.hp = this.maxHp;
+        this.speed = isMobile ? type.speed * 0.7 : type.speed; 
+        this.color = type.color; 
+        this.scoreValue = type.score;
+        
         if (Math.random() > 0.5) { this.x = Math.random() > 0.5 ? -this.size : canvas.width + this.size; this.y = Math.random() * canvas.height; } 
         else { this.x = Math.random() * canvas.width; this.y = Math.random() > 0.5 ? -this.size : canvas.height + this.size; }
         const angle = Math.atan2(canvas.height/2 - this.y, canvas.width/2 - this.x);
@@ -217,19 +235,15 @@ class Laser {
     }
     draw() { if(this.active) { ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 5; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height/2); ctx.lineTo(canvas.width/2 + Math.cos(this.angle)*2000, canvas.height/2 + Math.sin(this.angle)*2000); ctx.stroke(); ctx.globalAlpha = 1; } }
 }
-// 🌟 閃電實體類別
 class Lightning {
     constructor(startX, startY, targets) {
-        this.startX = startX; this.startY = startY; this.targets = targets;
-        this.life = 10; // 存活10幀
+        this.startX = startX; this.startY = startY; this.targets = targets; this.life = 10;
     }
     update() { this.life--; }
     draw() {
         if (this.targets.length > 0) {
-            ctx.strokeStyle = '#bc13fe'; ctx.lineWidth = 2; ctx.beginPath();
-            ctx.moveTo(this.startX, this.startY);
-            this.targets.forEach(e => ctx.lineTo(e.x, e.y));
-            ctx.stroke();
+            ctx.strokeStyle = '#bc13fe'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(this.startX, this.startY);
+            this.targets.forEach(e => ctx.lineTo(e.x, e.y)); ctx.stroke();
         }
     }
 }
@@ -256,7 +270,6 @@ function takeDamage(amount) {
 function autoWeaponLogic() {
     if(!gameRunning || gamePaused) return;
     if(stats.regenRate > 0 && currentHp < maxHp) { currentHp = Math.min(currentHp + stats.regenRate, maxHp); hpBar.style.width = `${(currentHp / maxHp) * 100}%`; }
-    // 🌟 閃電邏輯：生成實體
     if(shopItems.lightning.level > 0) {
         let targets = enemies.slice(0, shopItems.lightning.level + 2);
         if(targets.length > 0) {
@@ -266,14 +279,25 @@ function autoWeaponLogic() {
     }
     if(shopItems.missile.level > 0) { for(let i=0; i<shopItems.missile.level; i++) missiles.push(new Missile()); }
 }
+
+// 🌟 V18.0 屍潮生成邏輯
 function spawnLogic() {
     if (!gameRunning || gamePaused) return;
-    // 前期保護機制
-    let spawnChance = 0.2; 
-    if (score > 500) spawnChance = 0.4;
-    if (score > 1500) spawnChance = 0.6;
-    if (score > 3000) spawnChance = 0.8;
-    if (Math.random() < spawnChance) { let count = 1; if(score>2000) count=2; if(score>5000) count=3; if(isMobile) count+=1; for(let i=0; i<count; i++) enemies.push(new Enemy()); }
+    
+    // 1. 保底生成：每秒固定出 3 隻最弱的紅怪 (雜魚海)
+    for(let i=0; i<3; i++) {
+        enemies.push(new Enemy(0)); // 強制 Level 0
+    }
+
+    // 2. 機率生成：根據分數出強怪
+    let spawnChance = 0.3 + (score / 5000);
+    if (Math.random() < spawnChance) {
+        let count = 1;
+        if (score > 2000) count = 2; // 分數高再多生幾隻
+        for(let i=0; i<count; i++) enemies.push(new Enemy()); // 隨機等級
+    }
+
+    // BOSS 生成
     if (score > 2000 && score % 2000 < 100 && !bossSpawned) {
         let bossType = score > 10000 ? ENEMY_TYPES[9] : ENEMY_TYPES[8];
         let boss = new Enemy(); 
@@ -283,6 +307,7 @@ function spawnLogic() {
     }
     if (score % 2000 > 200) bossSpawned = false;
 }
+
 function gameLoop() {
     if (!gameRunning) return;
     if (!gamePaused) {
@@ -291,17 +316,17 @@ function gameLoop() {
         turrets.forEach(t => { t.update(); t.draw(); });
         missiles.forEach((m, i) => { m.update(); m.draw(); if(m.life<=0) missiles.splice(i,1); });
         lasers.forEach(l => { l.update(); l.draw(); });
-        // 🌟 繪製閃電
         lightnings.forEach((l, i) => { l.update(); l.draw(); if(l.life<=0) lightnings.splice(i,1); });
         bullets.forEach((b, i) => { b.update(); b.draw(); if (!b.active) bullets.splice(i, 1); });
         enemies.forEach((e, i) => { e.update(); e.draw(); if (e.hp <= 0) { 
-            score += e.scoreValue; gold += e.scoreValue; // 🌟 殺怪加分也加錢
+            score += e.scoreValue; gold += e.scoreValue; 
             updateHud(); createParticles(e.x, e.y, e.color, 10); enemies.splice(i, 1); 
         } });
         particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.05; if (p.life <= 0) particles.splice(i, 1); else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.globalAlpha = 1.0; } });
     }
     animationFrameId = requestAnimationFrame(gameLoop);
 }
+
 function handleInput(x, y) {
     if (!gameRunning || gamePaused) return;
     createParticles(x, y, '#ffffff', 5);
@@ -315,6 +340,7 @@ function handleInput(x, y) {
         }
     });
 }
+
 window.toggleShop = function() {
     if(!gameRunning) return;
     gamePaused = !gamePaused;
@@ -333,7 +359,7 @@ window.buyItem = function(type) {
         if(gold >= 5000) { gold -= 5000; updateHud(); shieldActive = true; setTimeout(() => shieldActive = false, 10000); toggleShop(); } return;
     }
     let item = shopItems[type], cost = Math.floor(item.baseCost * Math.pow(1.5, item.level));
-    if (gold >= cost) { // 🌟 檢查金幣
+    if (gold >= cost) { 
         gold -= cost; updateHud(); item.level++;
         if(type === 'damage') stats.damage += 10;
         if(type === 'blast') stats.blastRadius += 15;
@@ -355,16 +381,21 @@ canvas.addEventListener('touchstart', (e) => { e.preventDefault(); for (let i = 
 function initGame() { gameModal.style.display = 'flex'; body.classList.add('game-active'); }
 function startGame() {
     gameModal.style.display = 'none'; canvas.style.display = 'block'; shopBtn.style.display = 'block'; integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
+    
     gameRunning = true; gamePaused = false; 
     score = 0; 
-    gold = isMobile ? 0 : 3000; // 🌟 電腦版開局金幣 3000
+    gold = isMobile ? 0 : 3000; 
     updateHud();
+    
     maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
-    stats = { damage: 10, blastRadius: 50, regenRate: 0, critChance: 0 }; if(isMobile) stats.blastRadius = 100;
+    stats = { damage: 10, blastRadius: 50, regenRate: 0, critChance: 0 }; 
+    if(isMobile) stats.blastRadius = 100;
+    
     enemies = []; turrets = []; bullets = []; missiles = []; lasers = []; particles = []; lightnings = [];
     for(let key in shopItems) shopItems[key].level = 0;
-    // for(let i=0; i<5; i++) enemies.push(new Enemy()); // 移除開局怪
-    spawnInterval = setInterval(spawnLogic, 800); 
+    
+    // 設定生成頻率為 1000ms (1秒)，因為 spawnLogic 內部會一次生 3 隻
+    spawnInterval = setInterval(spawnLogic, 1000); 
     autoWeaponInterval = setInterval(autoWeaponLogic, 1000);
     gameLoop();
 }
