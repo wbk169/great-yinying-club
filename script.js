@@ -1,16 +1,7 @@
 // 設定檔案路徑
 const CSV_FILE_PATH = 'rankings.csv';
 
-// NPC 設定
-const NPC_LIST = { 
-    1: [], 
-    2: [], 
-    3: ['未入團強力路人1', '未入團強力路人2'], 
-    4: ['未入團強力路人5'], 
-    5: [] 
-};
-
-// 團別設定
+const NPC_LIST = { 1: [], 2: [], 3: ['未入團強力路人1', '未入團強力路人2'], 4: ['未入團強力路人5'], 5: [] };
 const TEAM_CONFIG = {
     1: { name: '大陰帝國', id: 'team1-body', theme: 'tier-1-theme' },
     2: { name: '大陰帝國-稽查菊', id: 'team2-body', theme: 'tier-2-theme' },
@@ -23,20 +14,15 @@ const TEAM_CONFIG = {
 // 網站視覺特效
 // ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-
 function hackEffect(element) {
     let iterations = 0;
     const originalText = element.dataset.value || element.innerText; 
     if(!element.dataset.value) element.dataset.value = originalText;
-
     const interval = setInterval(() => {
-        element.innerText = originalText.split("")
-            .map((letter, index) => {
-                if(index < iterations) return originalText[index];
-                return letters[Math.floor(Math.random() * 43)];
-            })
-            .join("");
-        
+        element.innerText = originalText.split("").map((letter, index) => {
+            if(index < iterations) return originalText[index];
+            return letters[Math.floor(Math.random() * 43)];
+        }).join("");
         if(iterations >= originalText.length) clearInterval(interval);
         iterations += 1 / 2; 
     }, 30);
@@ -61,27 +47,18 @@ function initScrollEffects() {
     const progressBar = document.getElementById('progressBar');
     const titles = document.querySelectorAll('.team-title');
     const sections = document.querySelectorAll('.team-section');
-    
     const titleObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                hackEffect(entry.target); 
-                titleObserver.unobserve(entry.target); 
-            }
+            if (entry.isIntersecting) { hackEffect(entry.target); titleObserver.unobserve(entry.target); }
         });
     }, { threshold: 0.5 });
     titles.forEach(title => titleObserver.observe(title));
-
     const sectionObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('reveal-active');
-                sectionObserver.unobserve(entry.target);
-            }
+            if (entry.isIntersecting) { entry.target.classList.add('reveal-active'); sectionObserver.unobserve(entry.target); }
         });
     }, { threshold: 0.1 });
     sections.forEach(section => sectionObserver.observe(section));
-
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -106,14 +83,8 @@ function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     if (!textElement || !bootScreen) return;
-
-    const logs = [
-        "INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", 
-        "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
-        "ACCESS GRANTED.", "SYSTEM ONLINE."
-    ];
+    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", "ACCESS GRANTED.", "SYSTEM ONLINE."];
     let lineIndex = 0;
-    
     function typeLine() {
         if (lineIndex < logs.length) {
             const line = document.createElement('div');
@@ -138,49 +109,27 @@ function initCursor() {
     const cursorOutline = document.querySelector('[data-cursor-outline]');
     const crossX = document.querySelector('.crosshair-x');
     const crossY = document.querySelector('.crosshair-y');
-    
     if(cursorDot) cursorDot.style.opacity = 0; 
     if(cursorOutline) cursorOutline.style.opacity = 0;
-
     window.addEventListener("mousemove", function (e) {
         const posX = e.clientX;
         const posY = e.clientY;
         if(cursorDot) { cursorDot.style.opacity = 1; cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`; }
-        if(cursorOutline) { 
-            cursorOutline.style.opacity = 1; 
-            cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 100, fill: "forwards" }); 
-        }
+        if(cursorOutline) { cursorOutline.style.opacity = 1; cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 100, fill: "forwards" }); }
         if(crossX && crossY) { crossX.style.top = `${posY}px`; crossY.style.left = `${posX}px`; }
     });
 }
 
-// ==========================================
 // 排名資料渲染
-// ==========================================
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr');
     tr.style.animation = `fadeIn 0.5s ease forwards`;
-
     let displayRank = `#${rank}`;
     let displayScore = `(PR: ${player.score})`;
-    
-    if (player.isLeader) {
-        tr.classList.add('row-leader');
-        displayRank = '#1'; displayScore = '👑 大陰團長';
-    } else if (player.isNPC) {
-        tr.classList.add('row-npc');
-        displayScore = '⚡ 強力NPC'; 
-    } else if (player.isDemoted) {
-        tr.classList.add('row-demoted');
-        displayScore = `(PR: ${player.score}) <span class="demoted-tag">自願降團</span>`;
-    }
-
-    tr.innerHTML = `
-        <td class="rank">${displayRank}</td>
-        <td class="hacker-text name" data-value="${player.name}">${player.name}</td>
-        <td class="score">${displayScore}</td>
-    `;
-    
+    if (player.isLeader) { tr.classList.add('row-leader'); displayRank = '#1'; displayScore = '👑 大陰團長'; } 
+    else if (player.isNPC) { tr.classList.add('row-npc'); displayScore = '⚡ 強力NPC'; } 
+    else if (player.isDemoted) { tr.classList.add('row-demoted'); displayScore = `(PR: ${player.score}) <span class="demoted-tag">自願降團</span>`; }
+    tr.innerHTML = `<td class="rank">${displayRank}</td><td class="hacker-text name" data-value="${player.name}">${player.name}</td><td class="score">${displayScore}</td>`;
     const nameCell = tr.querySelector('.hacker-text');
     if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
     container.appendChild(tr);
@@ -188,14 +137,11 @@ function renderRow(container, player, rank) {
 
 async function loadRankings() {
     runBootSequence(); 
-
     try {
         const response = await fetch(CSV_FILE_PATH);
         const csvText = await response.text();
         const rows = csvText.trim().split('\n').slice(1);
-
         let waitingList = [], demotedList = [], leaderData = null;     
-
         rows.forEach(row => {
             const columns = row.split(',');
             if (columns.length < 3) return;
@@ -203,14 +149,11 @@ async function loadRankings() {
             const score = columns[2].trim();
             const note = columns[3] ? columns[3].trim() : ""; 
             const playerData = { name: name, score: score, isLeader: false, isNPC: false, isDemoted: false };
-
             if (name === '陰帝') { leaderData = playerData; leaderData.isLeader = true; } 
             else if (note.includes('自願降團')) { playerData.isDemoted = true; demotedList.push(playerData); } 
             else { waitingList.push(playerData); }
         });
-
         let globalRankCounter = 1; 
-
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
             const config = TEAM_CONFIG[teamNum];
             const tableBody = document.getElementById(config.id);
@@ -218,35 +161,18 @@ async function loadRankings() {
             const section = tableBody.closest('.team-section');
             if (section) section.classList.add(config.theme);
             tableBody.innerHTML = ''; 
-
             let currentTeamCount = 0; 
             const MAX_PER_TEAM = 20;  
-
             if (teamNum === 1 && leaderData) { renderRow(tableBody, leaderData, globalRankCounter); currentTeamCount++; globalRankCounter++; }
             const npcs = NPC_LIST[teamNum] || [];
-            npcs.forEach(npcName => {
-                if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) {
-                    renderRow(tableBody, { name: npcName, score: "強力NPC", isLeader: false, isNPC: true }, globalRankCounter);
-                    currentTeamCount++; globalRankCounter++;
-                }
-            });
-            if (teamNum === 5) {
-                while (demotedList.length > 0) { renderRow(tableBody, demotedList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
-            }
-            while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) {
-                renderRow(tableBody, waitingList.shift(), globalRankCounter);
-                currentTeamCount++; globalRankCounter++;
-            }
+            npcs.forEach(npcName => { if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) { renderRow(tableBody, { name: npcName, score: "強力NPC", isLeader: false, isNPC: true }, globalRankCounter); currentTeamCount++; globalRankCounter++; }});
+            if (teamNum === 5) { while (demotedList.length > 0) { renderRow(tableBody, demotedList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; } }
+            while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) { renderRow(tableBody, waitingList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
         }
-
-        initCursor();
-        updateSysMonitor();
-        setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
-
+        initCursor(); updateSysMonitor(); setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
         const today = new Date();
         const dateEl = document.getElementById('update-date');
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-
     } catch (error) {
         console.error('讀取數據失敗:', error);
         const bootScreen = document.getElementById('boot-screen');
@@ -255,7 +181,7 @@ async function loadRankings() {
 }
 
 // ==========================================
-// 🎮 遊戲引擎 V10.0 (戰爭模式)
+// 🎮 V10.1 遊戲引擎 (手機暴走版)
 // ==========================================
 
 const canvas = document.getElementById('game-canvas');
@@ -274,7 +200,7 @@ let gameRunning = false;
 let score = 0;
 let maxHp = 100;
 let currentHp = 100;
-let clickDamage = 1; // 初始傷害
+let clickDamage = 5; 
 let enemies = [];
 let particles = [];
 let turrets = [];
@@ -293,18 +219,18 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// --- 類別定義 ---
-
 class Enemy {
     constructor(type = 'normal') {
         this.type = type;
+        // ⚡ 手機版怪物變快
+        let baseSpeed = isMobile ? 2.2 : 2.5; 
         
         if (type === 'boss') {
             this.size = 80; this.hp = 150; this.maxHp = 150; this.speed = 0.5; this.color = '#ffd700'; this.scoreValue = 1000;
         } else if (type === 'tank') {
             this.size = 40; this.hp = 10; this.maxHp = 10; this.speed = 1; this.color = '#bc13fe'; this.scoreValue = 50;
         } else {
-            this.size = 25; this.hp = 1; this.maxHp = 1; this.speed = isMobile ? 1.5 : 2.5; this.color = '#ff2a2a'; this.scoreValue = 10;
+            this.size = 25; this.hp = 1; this.maxHp = 1; this.speed = baseSpeed; this.color = '#ff2a2a'; this.scoreValue = 10;
         }
 
         if (Math.random() > 0.5) {
@@ -321,15 +247,11 @@ class Enemy {
         this.vx = Math.cos(angle) * this.speed;
         this.vy = Math.sin(angle) * this.speed;
     }
-
     update() {
         this.x += this.vx; this.y += this.vy;
         const distToCenter = Math.hypot(this.x - canvas.width/2, this.y - canvas.height/2);
-        if (distToCenter < 50) {
-            this.hp = 0; takeDamage(this.type === 'boss' ? 50 : 10);
-        }
+        if (distToCenter < 50) { this.hp = 0; takeDamage(this.type === 'boss' ? 50 : 10); }
     }
-
     draw() {
         ctx.strokeStyle = this.color; ctx.lineWidth = this.type === 'boss' ? 4 : 2;
         ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
@@ -395,7 +317,7 @@ function createParticles(x, y, color, count = 10) {
 function takeDamage(amount) {
     currentHp -= amount;
     hpBar.style.width = `${Math.max(0, (currentHp / maxHp) * 100)}%`;
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height); // 受傷紅閃
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; ctx.fillRect(0, 0, canvas.width, canvas.height); 
     if (currentHp <= 0) gameOver();
 }
 
@@ -404,30 +326,29 @@ function gameOver() {
     alert(`系統崩潰！你的最終得分: ${score}\n請重新修復系統。`);
 }
 
-// ⚠️ 調整過的生成邏輯 (高強度)
+// ⚠️ 調整過的生成邏輯 (暴走模式)
 function spawnLogic() {
     if (!gameRunning) return;
     
-    // 基礎生成率：50% + 分數加成
-    let spawnChance = 0.5 + (score / 5000);
+    // 基礎生成率提高到 70% + 分數加成
+    let spawnChance = 0.7 + (score / 3000);
     
     if (Math.random() < spawnChance) {
-        // 分數越高，一次可能生多隻
-        let count = 1;
-        if(score > 1000) count = 2;
-        if(score > 3000) count = 3;
+        // 手機版：因為有 AOE，直接生一整群 (2~4隻)
+        // 電腦版：1~3隻
+        let baseCount = isMobile ? 2 : 1; 
+        if(score > 1000) baseCount += 1;
+        if(score > 3000) baseCount += 1;
         
-        for(let i=0; i<count; i++) {
+        for(let i=0; i<baseCount; i++) {
             enemies.push(new Enemy(Math.random() > 0.8 ? 'tank' : 'normal'));
         }
         
-        // 生成提示特效 (畫面邊緣紅光)
         canvas.style.boxShadow = "inset 0 0 20px rgba(255,0,0,0.5)";
         setTimeout(() => canvas.style.boxShadow = "none", 200);
     }
 
-    // BOSS 生成
-    if (score > 500 && score % 2000 < 100 && !bossSpawned && enemies.length < 10) {
+    if (score > 500 && score % 2000 < 100 && !bossSpawned && enemies.length < 15) {
         enemies.push(new Enemy('boss')); bossSpawned = true;
         showGameMsg("⚠️ WARNING: BOSS DETECTED", canvas.width/2, canvas.height/2, '#ff0000');
     }
@@ -438,7 +359,6 @@ function gameLoop() {
     if (!gameRunning) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 核心
     ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 20, 0, Math.PI*2); ctx.stroke();
     ctx.font = "10px Arial"; ctx.fillStyle = "#00f3ff"; ctx.fillText("CORE", canvas.width/2 - 15, canvas.height/2 + 4);
@@ -463,24 +383,20 @@ function gameLoop() {
 function handleInput(x, y) {
     if (!gameRunning) return;
     createParticles(x, y, '#ffffff', 5);
-    // 增大判定範圍
-    const hitRadius = isMobile ? 120 : 60;
+    // ⚡ 手機 AOE 範圍加大
+    const hitRadius = isMobile ? 150 : 60;
     
     enemies.forEach(e => {
         const dist = Math.hypot(e.x - x, e.y - y);
         if (dist < hitRadius + e.size) {
             e.hp -= clickDamage;
-            // 擊退效果
             e.x -= e.vx * 10;
             e.y -= e.vy * 10;
-            
-            // 擊中特效
             createParticles(e.x, e.y, '#fff', 2);
         }
     });
 }
 
-// 商店函式
 window.buyItem = function(type) {
     if (!gameRunning) return;
     let cost = 0;
@@ -513,16 +429,14 @@ function initGame() { gameModal.style.display = 'flex'; body.classList.add('game
 function startGame() {
     gameModal.style.display = 'none'; canvas.style.display = 'block'; shopUI.style.display = 'flex';
     integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
-    
-    // 初始化遊戲數據
     gameRunning = true; score = 0; scoreHud.innerText = "SCORE: 0"; currentHp = 100; hpBar.style.width = '100%';
     clickDamage = 5; enemies = []; turrets = []; bullets = []; particles = [];
     
-    // 開局送怪
+    // 開局直接送 5 隻
     for(let i=0; i<5; i++) enemies.push(new Enemy());
     
-    // 加快生成頻率 (600ms)
-    spawnInterval = setInterval(spawnLogic, 600);
+    // ⚡ 超高速生成 (0.4秒)
+    spawnInterval = setInterval(spawnLogic, 400);
     gameLoop();
 }
 function stopGame() {
