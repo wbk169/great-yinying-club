@@ -1,12 +1,13 @@
 // 設定檔案路徑
 const CSV_FILE_PATH = 'rankings.csv';
 
-// 🟢【NPC 設定區】🟢
+// 🟢【NPC 設定區】🟢 
+// (請確認這裡的名字是否為您想要的名字，若已修改過請保留您的版本)
 const NPC_LIST = {
     1: [], 
     2: [],
     3: ['未入團強力路人1', '未入團強力路人2'], // 佔據 #41~#42
-    4: ['未入團強力路人5'], // 佔據 #61
+    4: ['未入團強力路人3'], // 佔據 #61
     5: []
 };
 
@@ -26,9 +27,9 @@ async function loadRankings() {
         const rows = csvText.trim().split('\n').slice(1);
 
         // --- 步驟 1：準備隊伍 ---
-        let waitingList = [];      // 一般排隊名單
-        let demotedList = [];      // 📉 自願降團名單 (優先去第五團)
-        let leaderData = null;     // 團長
+        let waitingList = [];      
+        let demotedList = [];      // 📉 自願降團名單
+        let leaderData = null;     
 
         rows.forEach(row => {
             const columns = row.split(',');
@@ -36,35 +37,42 @@ async function loadRankings() {
             
             const name = columns[1].trim();
             const score = columns[2].trim();
-            // 讀取第四欄 (如果有寫的話)，用來判斷是否自願降團
+            // 讀取備註欄位
             const note = columns[3] ? columns[3].trim() : ""; 
 
-            const playerData = { name: name, score: score, isLeader: false, isNPC: false };
+            // 初始化玩家資料物件
+            const playerData = { 
+                name: name, 
+                score: score, 
+                isLeader: false, 
+                isNPC: false,
+                isDemoted: false // ✨ 新增狀態：是否自願降團
+            };
 
             if (name === '陰帝') {
                 leaderData = playerData;
                 leaderData.isLeader = true;
             } else if (note.includes('自願降團')) {
-                // 📉 發現標記！放入降團名單
+                // 📉 標記為自願降團，並放入優先名單
+                playerData.isDemoted = true; 
                 demotedList.push(playerData);
             } else {
-                // 一般人放入排隊名單
                 waitingList.push(playerData);
             }
         });
 
         // --- 步驟 2：開始分發 (流水席邏輯) ---
-        let globalRankCounter = 1; // 全局排名計數器
+        let globalRankCounter = 1; 
 
         // 依序處理 1~5 團
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
             const tableBody = document.getElementById(TEAM_CONFIG[teamNum].id);
             if (!tableBody) continue;
 
-            let currentTeamCount = 0; // 該團目前人數
-            const MAX_PER_TEAM = 20;  // 每團上限
+            let currentTeamCount = 0; 
+            const MAX_PER_TEAM = 20;  
 
-            // --- A. 團長優先入座 (只在一團) ---
+            // --- A. 團長優先入座 ---
             if (teamNum === 1 && leaderData) {
                 renderRow(tableBody, leaderData, globalRankCounter);
                 currentTeamCount++;
@@ -88,7 +96,6 @@ async function loadRankings() {
             });
 
             // --- C. 自願降團者入座 (只在第五團優先插入) ---
-            // 這樣他們會佔據五團的 #81, #82 位置
             if (teamNum === 5) {
                 while (demotedList.length > 0) {
                     const demotedPlayer = demotedList.shift();
@@ -101,9 +108,7 @@ async function loadRankings() {
             // --- D. 真實玩家從隊伍中補位 ---
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) {
                 const player = waitingList.shift(); 
-                
                 renderRow(tableBody, player, globalRankCounter);
-                
                 currentTeamCount++;
                 globalRankCounter++;
             }
@@ -131,7 +136,7 @@ function renderRow(container, player, rank) {
     let nameStyle = '';
     let scoreStyle = 'color:#aaa; font-size:0.9em;';
 
-    // 特殊身分樣式
+    // --- 特殊身分樣式判斷 ---
     if (player.isLeader) {
         displayRank = '#1'; 
         displayScore = '👑 大陰團長';
@@ -147,6 +152,14 @@ function renderRow(container, player, rank) {
         scoreStyle = 'color: #00FF7F; font-weight: bold; letter-spacing: 1px;';
         tr.style.borderLeft = '3px solid #00FF7F'; 
     }
+    // ✨【新增】自願降團樣式
+    else if (player.isDemoted) {
+        // 在分數後面加上紅色的標籤
+        displayScore = `(PR: ${player.score}) <span style="display:inline-block; border:1px solid #ff4757; color:#ff4757; padding:1px 6px; border-radius:4px; font-size:0.75em; margin-left:8px; vertical-align:middle; box-shadow: 0 0 8px rgba(255, 71, 87, 0.3);">自願降團</span>`;
+        
+        // 該行左側加紅色邊框
+        tr.style.borderLeft = '3px solid #ff4757';
+    }
 
     tr.innerHTML = `
         <td style="font-weight:bold; color:${rankColor}; white-space:nowrap;">${displayRank}</td>
@@ -157,7 +170,7 @@ function renderRow(container, player, rank) {
     container.appendChild(tr);
 }
 
-// ✨【新增】科技感游標控制邏輯
+// ✨ 科技感游標控制邏輯
 const cursorDot = document.querySelector('[data-cursor-dot]');
 const cursorOutline = document.querySelector('[data-cursor-outline]');
 
@@ -165,10 +178,8 @@ if (cursorDot && cursorOutline) {
     window.addEventListener("mousemove", function (e) {
         const posX = e.clientX;
         const posY = e.clientY;
-
         cursorDot.style.left = `${posX}px`;
         cursorDot.style.top = `${posY}px`;
-
         cursorOutline.animate({
             left: `${posX}px`,
             top: `${posY}px`
