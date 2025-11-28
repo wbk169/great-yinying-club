@@ -97,17 +97,7 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 .cy-btn.danger:active { background: var(--neon-red); color: #000; }
 .cy-btn.shop { border-color: var(--neon-gold); color: var(--neon-gold); }
 .cy-btn.shop:active { background: var(--neon-gold); color: #000; }
-
-/* 🌟 分數與金幣板 */
-.game-score-board {
-    font-family: 'Consolas', monospace; font-size: 1.5em; color: var(--neon-cyan);
-    text-shadow: 0 0 10px var(--neon-cyan); display: none; background: rgba(0, 0, 0, 0.8);
-    padding: 10px 20px; border-left: 3px solid var(--neon-cyan); margin-bottom: 10px;
-    text-align: left; line-height: 1.4;
-}
-/* 金幣專屬色 */
-.gold-text { color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); display: block; font-size: 1.1em; margin-top: 5px; }
-
+.game-score-board { font-family: 'Consolas', monospace; font-size: 2em; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); display: none; background: rgba(0, 0, 0, 0.7); padding: 10px 20px; border-left: 3px solid var(--neon-gold); margin-bottom: 10px; }
 body.game-active main, body.game-active header { filter: blur(8px) brightness(0.2); pointer-events: none; transition: 0.5s; }
 
 .shop-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 10020; display: none; justify-content: center; align-items: flex-start; overflow-y: auto; backdrop-filter: blur(10px); padding-top: 20px; }
@@ -139,6 +129,24 @@ body.game-active main, body.game-active header { filter: blur(8px) brightness(0.
 .game-msg { position: absolute; color: #fff; font-weight: bold; font-family: 'Consolas', sans-serif; pointer-events: none; animation: floatUp 1s forwards; text-shadow: 0 0 5px #fff; z-index: 10006;}
 @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
 
+/* 🌟 BOSS 警報特效 */
+.boss-warning-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(255, 0, 0, 0.2);
+    z-index: 10004; pointer-events: none; display: none;
+    animation: alarmFlash 0.5s infinite alternate;
+}
+@keyframes alarmFlash { from { opacity: 0.2; } to { opacity: 0.6; } }
+
+.boss-warning-text {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 4em; color: var(--neon-red); font-weight: bold;
+    text-shadow: 0 0 20px var(--neon-red); z-index: 10005; pointer-events: none;
+    display: none; animation: textPulse 0.5s infinite alternate;
+    white-space: nowrap;
+}
+@keyframes textPulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
+
 #boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: flex; align-items: center; padding: 20px; }
 #terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; }
 
@@ -157,6 +165,7 @@ body.game-active main, body.game-active header { filter: blur(8px) brightness(0.
     .tier-3-theme .team-title { color: var(--neon-green) !important; -webkit-text-fill-color: var(--neon-green) !important; }
     .tier-4-theme .team-title { color: var(--neon-purple) !important; -webkit-text-fill-color: var(--neon-purple) !important; }
     .tier-5-theme .team-title { color: var(--neon-red) !important; -webkit-text-fill-color: var(--neon-red) !important; }
+    .boss-warning-text { font-size: 2em; }
 }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }

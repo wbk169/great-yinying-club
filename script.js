@@ -130,7 +130,7 @@ async function loadRankings() {
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
 
-// 🎮 V18.1 Game Engine
+// 🎮 V19.0 Game Engine: 循序漸進平衡版
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('start-game-btn');
@@ -160,16 +160,44 @@ let shopItems = {
     lightning:{ baseCost: 4000, level: 0, name: "閃電" },
     regen:  { baseCost: 3000, level: 0, name: "修復" }
 };
-let stats = { damage: 20, blastRadius: 50, regenRate: 0 }; // 預設傷害調整
+let stats = { damage: 20, blastRadius: 50, regenRate: 0 }; 
 
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; isMobile = window.innerWidth < 768; if (isMobile && stats.blastRadius < 100) stats.blastRadius = 100; }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-const ENEMY_TYPES = [{ color: '#ff2a2a', hp: 10, speed: 2.5, size: 20, score: 10 }, { color: '#ff7f50', hp: 20, speed: 3.0, size: 22, score: 20 }, { color: '#bc13fe', hp: 100, speed: 1.0, size: 35, score: 50 }, { color: '#00ff00', hp: 50, speed: 2.0, size: 25, score: 30 }, { color: '#00f3ff', hp: 80, speed: 1.5, size: 30, score: 40 }, { color: '#ff00ff', hp: 150, speed: 1.2, size: 38, score: 60 }, { color: '#ffffff', hp: 250, speed: 0.8, size: 45, score: 100 }, { color: '#888888', hp: 30, speed: 4.0, size: 15, score: 25 }, { color: '#ffd700', hp: 2000, speed: 0.5, size: 80, score: 1000 }, { color: '#ff4757', hp: 5000, speed: 0.4, size: 100, score: 5000 }];
+const ENEMY_TYPES = [
+    { color: '#ff2a2a', hp: 10, speed: 2.5, size: 20, score: 10 },        // Lv0: Red (Weak)
+    { color: '#ff7f50', hp: 30, speed: 3.0, size: 22, score: 20 },        // Lv1: Orange
+    { color: '#bc13fe', hp: 150, speed: 1.0, size: 35, score: 50 },       // Lv2: Purple (Tank)
+    { color: '#00ff00', hp: 50, speed: 2.0, size: 25, score: 30 },        // Lv3: Green
+    { color: '#00f3ff', hp: 80, speed: 1.5, size: 30, score: 40 },        // Lv4: Cyan
+    { color: '#ff00ff', hp: 200, speed: 1.2, size: 38, score: 60 },       // Lv5: Pink (Tank)
+    { color: '#ffffff', hp: 300, speed: 0.8, size: 45, score: 100 },      // Lv6: White
+    { color: '#888888', hp: 30, speed: 4.5, size: 15, score: 25 },        // Lv7: Grey (Fast)
+    { color: '#ffd700', hp: 3000, speed: 0.5, size: 80, score: 1000 },    // Lv8: Boss
+    { color: '#ff4757', hp: 8000, speed: 0.4, size: 100, score: 5000 }    // Lv9: Super Boss
+];
 
 function updateHud() {
     scoreHud.innerHTML = `SCORE: ${score}<br><span class="gold-text">🪙: ${gold}</span>`;
+}
+
+// 🌟 V19.0 新增：BOSS 警報 UI
+function createBossAlertUI() {
+    if(!document.querySelector('.boss-warning-overlay')) {
+        const overlay = document.createElement('div'); overlay.className = 'boss-warning-overlay';
+        const text = document.createElement('div'); text.className = 'boss-warning-text'; text.innerText = "WARNING: BOSS APPROACHING";
+        document.body.appendChild(overlay); document.body.appendChild(text);
+    }
+}
+createBossAlertUI();
+
+function triggerBossWarning() {
+    const overlay = document.querySelector('.boss-warning-overlay');
+    const text = document.querySelector('.boss-warning-text');
+    overlay.style.display = 'block'; text.style.display = 'block';
+    setTimeout(() => { overlay.style.display = 'none'; text.style.display = 'none'; }, 3000);
 }
 
 class Enemy {
@@ -178,17 +206,20 @@ class Enemy {
         if (forcedLevel !== null) {
             level = forcedLevel;
         } else {
-            let difficulty = 0;
-            if(score > 500) difficulty = 2;
-            if(score > 1500) difficulty = 4;
-            if(score > 3000) difficulty = 6;
-            if(score > 5000) difficulty = 8;
-            level = Math.min(Math.floor(Math.random() * (difficulty + 1)), 9);
+            // 🌟 嚴格的分數門檻：確保前期只出爛怪
+            let maxTier = 0;
+            if (score > 1000) maxTier = 1; // 1000分後解鎖橘怪
+            if (score > 2500) maxTier = 2; // 2500分後解鎖紫怪
+            if (score > 4000) maxTier = 4;
+            if (score > 6000) maxTier = 6;
+            if (score > 8000) maxTier = 7;
+            
+            level = Math.floor(Math.random() * (maxTier + 1));
         }
 
         let type = ENEMY_TYPES[level];
         this.size = type.size; 
-        this.maxHp = type.hp * (1 + (score/5000) * 0.5); 
+        this.maxHp = type.hp * (1 + (score/10000) * 0.2); // 血量隨分數成長幅度降低
         this.hp = this.maxHp;
         this.speed = isMobile ? type.speed * 0.7 : type.speed; 
         this.color = type.color; 
@@ -278,25 +309,45 @@ function autoWeaponLogic() {
     if(shopItems.missile.level > 0) { for(let i=0; i<shopItems.missile.level; i++) missiles.push(new Missile()); }
 }
 
+// 🌟 V19.0 修正：平衡後的生成邏輯
 function spawnLogic() {
     if (!gameRunning || gamePaused) return;
-    // 🌟 強制生成最弱怪 3 隻 (提供爽快感)
+    
+    // 1. 保底生成：每秒 3 隻最弱怪 (送錢)
     for(let i=0; i<3; i++) { enemies.push(new Enemy(0)); }
 
-    let spawnChance = 0.3 + (score / 5000);
+    // 2. 額外生成：隨分數增加頻率
+    let spawnChance = 0.2;
+    if (score > 1000) spawnChance = 0.4;
+    if (score > 3000) spawnChance = 0.7;
+    if (score > 6000) spawnChance = 0.9;
+
     if (Math.random() < spawnChance) {
-        let count = 1; if (score > 2000) count = 2;
+        let count = 1;
+        if (score > 2000) count = 2;
+        if (score > 5000) count = 3; // 後期怪海
         for(let i=0; i<count; i++) enemies.push(new Enemy());
     }
 
-    if (score > 2000 && score % 2000 < 100 && !bossSpawned) {
-        let bossType = score > 10000 ? ENEMY_TYPES[9] : ENEMY_TYPES[8];
-        let boss = new Enemy(); 
-        boss.type = 'boss'; boss.size = bossType.size; boss.hp = bossType.hp; boss.maxHp = bossType.hp; boss.speed = bossType.speed; boss.color = bossType.color; boss.scoreValue = bossType.score;
-        enemies.push(boss); bossSpawned = true;
-        showGameMsg("⚠️ WARNING: BOSS DETECTED", canvas.width/2, canvas.height/2, '#ff0000');
+    // 3. BOSS 生成邏輯 (警報 + 延遲)
+    // 門檻：3000分, 8000分, 13000分...
+    if (score > 3000 && score % 5000 < 100 && !bossSpawned) {
+        bossSpawned = true;
+        triggerBossWarning(); // 🚨 先閃警報
+        
+        // 3秒後 BOSS 降臨
+        setTimeout(() => {
+            let bossCount = Math.floor(score / 5000); // 越多分 BOSS 越多隻
+            let bossType = score > 10000 ? ENEMY_TYPES[9] : ENEMY_TYPES[8];
+            
+            for(let k=0; k<bossCount; k++) {
+                let boss = new Enemy(); 
+                boss.type = 'boss'; boss.size = bossType.size; boss.hp = bossType.hp; boss.maxHp = bossType.hp; boss.speed = bossType.speed; boss.color = bossType.color; boss.scoreValue = bossType.score;
+                enemies.push(boss);
+            }
+        }, 3000);
     }
-    if (score % 2000 > 200) bossSpawned = false;
+    if (score % 5000 > 200) bossSpawned = false;
 }
 
 function gameLoop() {
@@ -379,7 +430,6 @@ function startGame() {
     updateHud();
     
     maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
-    // 🌟 修正：初始傷害從 10 改為 20 (確保秒殺小怪)
     stats = { damage: 20, blastRadius: 50, regenRate: 0, critChance: 0 }; 
     if(isMobile) stats.blastRadius = 100;
     
