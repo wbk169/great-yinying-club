@@ -441,4 +441,4 @@ modalStartBtn.addEventListener('click', startGame);
 stopBtn.addEventListener('click', stopGame);
 
 // 為了確保原有的網站邏輯運行，記得呼叫 loadRankings (假設您有保留上面的代碼)
-// loadRankings();
+loadRankings();
