@@ -5,7 +5,8 @@ const CSV_FILE_PATH = 'rankings.csv';
 const NPC_LIST = {
     1: [], 
     2: [],
-    3: ['未入團強力路人1', '未入團強力路人2', '未入團強力路人3', '未入團強力路人4'], 
+    // ✨ 修正：三團改為 2 位 NPC
+    3: ['未入團強力路人1', '未入團強力路人2'], 
     4: ['未入團強力路人5'], 
     5: []
 };
@@ -41,7 +42,7 @@ function hackEffect(element) {
 }
 
 // ==========================================
-// 🚀 特效 2：磁吸按鈕
+// 🚀 特效 2：磁吸按鈕 (修正版)
 // ==========================================
 function initMagnetic() {
     if (window.innerWidth < 768) return; 
@@ -50,9 +51,13 @@ function initMagnetic() {
         magnet.classList.add('magnetic-target'); 
         magnet.addEventListener('mousemove', (e) => {
             const rect = magnet.getBoundingClientRect();
+            // 計算滑鼠相對於元素中心的距離
             const x = e.clientX - rect.left - rect.width / 2;
             const y = e.clientY - rect.top - rect.height / 2;
-            magnet.style.transform = `translate(${x * 0.3}px, ${y * 0.5}px)`;
+            
+            // ✨ 修正：大幅降低移動係數 (0.3 -> 0.05)
+            // 這樣只會微微移動，不會飛出去
+            magnet.style.transform = `translate(${x * 0.05}px, ${y * 0.1}px)`;
         });
         magnet.addEventListener('mouseleave', () => {
             magnet.style.transform = 'translate(0px, 0px)';
@@ -109,7 +114,7 @@ function updateSysMonitor() {
 setInterval(updateSysMonitor, 1000);
 
 // ==========================================
-// 🚀 特效 5：系統啟動畫面 (已修復文字)
+// 🚀 特效 5：系統啟動畫面
 // ==========================================
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
@@ -118,7 +123,7 @@ function runBootSequence() {
         "INITIALIZING SYSTEM...",
         "LOADING KERNEL MODULES...",
         "CONNECTING TO MLB DATABASE...",
-        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", // ✨ 這裡補回來了！
+        "VERIFYING CLUB CREDENTIALS [大陰帝國]...",
         "ACCESS GRANTED.",
         "SYSTEM ONLINE."
     ];
@@ -145,7 +150,7 @@ function runBootSequence() {
 // 🚀 主程式：讀取 CSV 並渲染
 // ==========================================
 async function loadRankings() {
-    runBootSequence(); // 執行開場
+    runBootSequence(); 
 
     try {
         const response = await fetch(CSV_FILE_PATH);
@@ -177,9 +182,7 @@ async function loadRankings() {
             const tableBody = document.getElementById(TEAM_CONFIG[teamNum].id);
             if (!tableBody) continue;
             
-            // ✨✨✨【關鍵修復】✨✨✨
-            // 在填入資料前，先清空表格！防止重複渲染
-            tableBody.innerHTML = ''; 
+            tableBody.innerHTML = ''; // 清空防止重複
 
             let currentTeamCount = 0; 
             const MAX_PER_TEAM = 20;  
@@ -214,7 +217,6 @@ async function loadRankings() {
             }
         }
 
-        // 初始化特效
         initCursor();
         initScrollEffects(); 
         updateSysMonitor();
@@ -265,21 +267,32 @@ function renderRow(container, player, rank) {
     container.appendChild(tr);
 }
 
-// 游標與聚光燈
+// ✨ 修正：游標對齊與效能優化
 function initCursor() {
     if (window.innerWidth < 768) return;
     const cursorDot = document.querySelector('[data-cursor-dot]');
     const cursorOutline = document.querySelector('[data-cursor-outline]');
-    const body = document.body;
+    
+    // 預設將游標隱藏，直到滑鼠移動才顯示，避免開場出現在左上角
+    cursorDot.style.opacity = 0;
+    cursorOutline.style.opacity = 0;
 
     window.addEventListener("mousemove", function (e) {
         const posX = e.clientX;
         const posY = e.clientY;
+        
+        cursorDot.style.opacity = 1;
+        cursorOutline.style.opacity = 1;
+
+        // 小點直接定位
         cursorDot.style.left = `${posX}px`;
         cursorDot.style.top = `${posY}px`;
-        cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 400, fill: "forwards" });
-        body.style.setProperty('--x', `${posX}px`);
-        body.style.setProperty('--y', `${posY}px`);
+        
+        // ✨ 修正：縮短延遲時間到 100ms (原本是 400ms)，這樣圈圈跟得比較緊，不會歪
+        cursorOutline.animate({
+            left: `${posX}px`,
+            top: `${posY}px`
+        }, { duration: 100, fill: "forwards" });
     });
 }
 
