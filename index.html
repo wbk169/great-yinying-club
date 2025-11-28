@@ -7,8 +7,37 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <canvas id="game-canvas"></canvas>
+<canvas id="game-canvas"></canvas>
+
+    <div id="integrity-ui" class="integrity-container">
+        <div class="integrity-text">SYSTEM INTEGRITY</div>
+        <div id="hp-bar" class="integrity-bar"></div>
+    </div>
+
+    <div id="game-start-modal" class="game-modal">
+        <div class="modal-content">
+            <h2>🛡️ SYSTEM DEFENSE 協議</h2>
+            <ul>
+                <li><strong>目標：</strong> 防止病毒歸零系統完整度。</li>
+                <li><strong>操作：</strong> 點擊敵人進行攻擊。</li>
+                <li><strong>商店：</strong> 使用積分購買更強武器與砲塔。</li>
+                <li><strong>警告：</strong> BOSS 會定期出現，請升級火力。</li>
+            </ul>
+            <button id="modal-start-btn" class="cy-btn">INITIATE (開始)</button>
+        </div>
+    </div>
+
+    <div id="shop-ui" class="game-shop">
+        <div class="shop-item" onclick="buyItem('damage')">
+            <span>火力UP</span><div class="cost">$500</div>
+        </div>
+        <div class="shop-item" onclick="buyItem('turret')">
+            <span>自動砲塔</span><div class="cost">$2000</div>
+        </div>
+        <div class="shop-item" onclick="buyItem('repair')">
+            <span>系統修復</span><div class="cost">$1000</div>
+        </div>
+    </div>
 
     <div class="game-ui-container">
         <div id="game-hud" class="game-score-board">SCORE: 0</div>

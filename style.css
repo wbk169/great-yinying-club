@@ -183,3 +183,62 @@ body.game-active main, body.game-active header { filter: blur(5px) brightness(0.
     .game-score-board { font-size: 1.5em; }
     .cy-btn { padding: 8px 15px; font-size: 0.9em; }
 }
+/* ... (保留原本內容) ... */
+
+/* =========================================
+   🛡️ V9.0 塔防系統介面
+   ========================================= */
+
+/* 1. 系統完整度 (血條) */
+.integrity-container {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 20px; border: 1px solid var(--neon-red);
+    background: rgba(0,0,0,0.8); z-index: 10005; display: none;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 10px) 100%, 0 100%, 0 5px);
+}
+.integrity-bar {
+    width: 100%; height: 100%; background: var(--neon-red);
+    box-shadow: 0 0 10px var(--neon-red); transition: width 0.3s;
+}
+.integrity-text {
+    position: absolute; top: -25px; width: 100%; text-align: center;
+    color: var(--neon-red); font-weight: bold; letter-spacing: 2px; font-size: 0.9em;
+}
+
+/* 2. 遊戲商店 (Shop) */
+.game-shop {
+    position: fixed; bottom: 20px; left: 20px;
+    display: none; flex-direction: row; gap: 10px; z-index: 10005;
+}
+.shop-item {
+    background: rgba(0, 15, 30, 0.9); border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan); padding: 10px; width: 80px; text-align: center;
+    cursor: pointer; transition: 0.2s; font-size: 0.8em;
+    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+.shop-item:hover { background: var(--neon-cyan); color: #000; }
+.shop-item:active { transform: translateY(2px); }
+.shop-item span { display: block; font-weight: bold; margin-bottom: 5px; }
+.cost { color: var(--neon-gold); font-size: 0.9em; }
+
+/* 3. 遊戲規則與開始畫面 */
+.game-modal {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.9); z-index: 10010; display: none;
+    justify-content: center; align-items: center; flex-direction: column;
+}
+.modal-content {
+    background: var(--panel-bg); border: 1px solid var(--neon-cyan);
+    padding: 40px; max-width: 500px; text-align: center;
+    box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
+}
+.modal-content h2 { text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--neon-cyan); }
+.modal-content ul { text-align: left; margin-bottom: 30px; line-height: 1.8; color: #ccc; }
+.modal-content li::marker { color: var(--neon-cyan); }
+
+/* 手機版適配 */
+@media (max-width: 768px) {
+    .game-shop { bottom: 10px; left: 10px; flex-wrap: wrap; width: 200px; }
+    .shop-item { width: 45%; padding: 5px; font-size: 0.7em; }
+    .integrity-container { width: 200px; }
+}
