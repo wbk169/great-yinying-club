@@ -207,13 +207,31 @@ body.game-active main, body.game-active header { filter: blur(5px) brightness(0.
 }
 .modal-content {
     background: var(--panel-bg); border: 1px solid var(--neon-cyan);
-    padding: 30px; max-width: 90%; width: 400px; text-align: center;
+    padding: 30px; max-width: 90%; width: 400px; text-align: center; /* 讓標題置中 */
     box-shadow: 0 0 30px rgba(0, 243, 255, 0.2);
 }
 .modal-content h2 { text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--neon-cyan); padding-bottom: 10px; color: var(--neon-cyan); }
-.modal-content ul { text-align: left; margin: 0 auto 30px auto; padding-left: 20px; display: inline-block; list-style: none; }
-.modal-content li { margin-bottom: 10px; color: #ccc; position: relative; }
-.modal-content li::before { content: '>'; color: var(--neon-red); font-weight: bold; margin-right: 8px; }
+
+/* 🌟 列表修正：讓列表區塊置中，但文字靠左 */
+.modal-content ul {
+    text-align: left; 
+    margin: 0 auto 30px auto; 
+    padding-left: 20px; 
+    display: inline-block; /* 讓 UL 寬度隨內容縮放，從而可以被父層置中 */
+    list-style: none; /* 移除預設圓點 */
+}
+.modal-content li {
+    margin-bottom: 10px;
+    color: #ccc;
+    position: relative;
+}
+/* 自定義箭頭符號 */
+.modal-content li::before {
+    content: '>'; 
+    color: var(--neon-red);
+    font-weight: bold;
+    margin-right: 8px;
+}
 .modal-content li strong { color: #fff; }
 
 /* 🌟 手機適配 (UI 重排) */
