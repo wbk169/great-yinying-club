@@ -130,7 +130,7 @@ async function loadRankings() {
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
 
-// 🎮 V15.2 Game Engine (電腦版福利)
+// 🎮 V17.0 Game Engine
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('start-game-btn');
@@ -144,7 +144,9 @@ const integrityUI = document.getElementById('integrity-ui');
 const gameModal = document.getElementById('game-start-modal');
 const body = document.body;
 
-let gameRunning = false, gamePaused = false, score = 0, maxHp = 100, currentHp = 100;
+let gameRunning = false, gamePaused = false;
+let score = 0, gold = 0; // 🌟 新增 gold
+let maxHp = 100, currentHp = 100;
 let enemies = [], particles = [], bullets = [], turrets = [], missiles = [], lasers = [], lightnings = [];
 let bossSpawned = false, animationFrameId, spawnInterval, autoWeaponInterval;
 let isMobile = window.innerWidth < 768;
@@ -165,6 +167,10 @@ window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 const ENEMY_TYPES = [{ color: '#ff2a2a', hp: 10, speed: 2.5, size: 20, score: 10 }, { color: '#ff7f50', hp: 20, speed: 3.0, size: 22, score: 20 }, { color: '#bc13fe', hp: 100, speed: 1.0, size: 35, score: 50 }, { color: '#00ff00', hp: 50, speed: 2.0, size: 25, score: 30 }, { color: '#00f3ff', hp: 80, speed: 1.5, size: 30, score: 40 }, { color: '#ff00ff', hp: 150, speed: 1.2, size: 38, score: 60 }, { color: '#ffffff', hp: 250, speed: 0.8, size: 45, score: 100 }, { color: '#888888', hp: 30, speed: 4.0, size: 15, score: 25 }, { color: '#ffd700', hp: 2000, speed: 0.5, size: 80, score: 1000 }, { color: '#ff4757', hp: 5000, speed: 0.4, size: 100, score: 5000 }];
+
+function updateHud() {
+    scoreHud.innerHTML = `SCORE: ${score}<br><span class="gold-text">🪙: ${gold}</span>`;
+}
 
 class Enemy {
     constructor() {
@@ -211,6 +217,22 @@ class Laser {
     }
     draw() { if(this.active) { ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 5; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height/2); ctx.lineTo(canvas.width/2 + Math.cos(this.angle)*2000, canvas.height/2 + Math.sin(this.angle)*2000); ctx.stroke(); ctx.globalAlpha = 1; } }
 }
+// 🌟 閃電實體類別
+class Lightning {
+    constructor(startX, startY, targets) {
+        this.startX = startX; this.startY = startY; this.targets = targets;
+        this.life = 10; // 存活10幀
+    }
+    update() { this.life--; }
+    draw() {
+        if (this.targets.length > 0) {
+            ctx.strokeStyle = '#bc13fe'; ctx.lineWidth = 2; ctx.beginPath();
+            ctx.moveTo(this.startX, this.startY);
+            this.targets.forEach(e => ctx.lineTo(e.x, e.y));
+            ctx.stroke();
+        }
+    }
+}
 class Bullet {
     constructor(x, y, target, damage) { this.x = x; this.y = y; this.target = target; this.damage = damage; this.active = true; let angle = Math.atan2(target.y - y, target.x - x); this.vx = Math.cos(angle)*10; this.vy = Math.sin(angle)*10; }
     update() {
@@ -234,19 +256,32 @@ function takeDamage(amount) {
 function autoWeaponLogic() {
     if(!gameRunning || gamePaused) return;
     if(stats.regenRate > 0 && currentHp < maxHp) { currentHp = Math.min(currentHp + stats.regenRate, maxHp); hpBar.style.width = `${(currentHp / maxHp) * 100}%`; }
+    // 🌟 閃電邏輯：生成實體
     if(shopItems.lightning.level > 0) {
         let targets = enemies.slice(0, shopItems.lightning.level + 2);
         if(targets.length > 0) {
-            ctx.strokeStyle = '#bc13fe'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height/2);
-            targets.forEach(e => { ctx.lineTo(e.x, e.y); e.hp -= 30; createParticles(e.x, e.y, '#bc13fe', 5); }); ctx.stroke();
+            targets.forEach(e => { e.hp -= 30; createParticles(e.x, e.y, '#bc13fe', 5); });
+            lightnings.push(new Lightning(canvas.width/2, canvas.height/2, targets));
         }
     }
     if(shopItems.missile.level > 0) { for(let i=0; i<shopItems.missile.level; i++) missiles.push(new Missile()); }
 }
 function spawnLogic() {
     if (!gameRunning || gamePaused) return;
-    let spawnChance = 0.7 + (score / 3000);
-    if (Math.random() < spawnChance) { let count = isMobile ? 3 : 1; if(score > 2000) count++; for(let i=0; i<count; i++) enemies.push(new Enemy()); }
+    // 前期保護機制
+    let spawnChance = 0.2; 
+    if (score > 500) spawnChance = 0.4;
+    if (score > 1500) spawnChance = 0.6;
+    if (score > 3000) spawnChance = 0.8;
+    if (Math.random() < spawnChance) { let count = 1; if(score>2000) count=2; if(score>5000) count=3; if(isMobile) count+=1; for(let i=0; i<count; i++) enemies.push(new Enemy()); }
+    if (score > 2000 && score % 2000 < 100 && !bossSpawned) {
+        let bossType = score > 10000 ? ENEMY_TYPES[9] : ENEMY_TYPES[8];
+        let boss = new Enemy(); 
+        boss.type = 'boss'; boss.size = bossType.size; boss.hp = bossType.hp; boss.maxHp = bossType.hp; boss.speed = bossType.speed; boss.color = bossType.color; boss.scoreValue = bossType.score;
+        enemies.push(boss); bossSpawned = true;
+        showGameMsg("⚠️ WARNING: BOSS DETECTED", canvas.width/2, canvas.height/2, '#ff0000');
+    }
+    if (score % 2000 > 200) bossSpawned = false;
 }
 function gameLoop() {
     if (!gameRunning) return;
@@ -256,8 +291,13 @@ function gameLoop() {
         turrets.forEach(t => { t.update(); t.draw(); });
         missiles.forEach((m, i) => { m.update(); m.draw(); if(m.life<=0) missiles.splice(i,1); });
         lasers.forEach(l => { l.update(); l.draw(); });
+        // 🌟 繪製閃電
+        lightnings.forEach((l, i) => { l.update(); l.draw(); if(l.life<=0) lightnings.splice(i,1); });
         bullets.forEach((b, i) => { b.update(); b.draw(); if (!b.active) bullets.splice(i, 1); });
-        enemies.forEach((e, i) => { e.update(); e.draw(); if (e.hp <= 0) { score += e.scoreValue; scoreHud.innerText = `SCORE: ${score}`; createParticles(e.x, e.y, e.color, 10); enemies.splice(i, 1); } });
+        enemies.forEach((e, i) => { e.update(); e.draw(); if (e.hp <= 0) { 
+            score += e.scoreValue; gold += e.scoreValue; // 🌟 殺怪加分也加錢
+            updateHud(); createParticles(e.x, e.y, e.color, 10); enemies.splice(i, 1); 
+        } });
         particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.05; if (p.life <= 0) particles.splice(i, 1); else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.globalAlpha = 1.0; } });
     }
     animationFrameId = requestAnimationFrame(gameLoop);
@@ -265,10 +305,14 @@ function gameLoop() {
 function handleInput(x, y) {
     if (!gameRunning || gamePaused) return;
     createParticles(x, y, '#ffffff', 5);
-    const hitRadius = stats.blastRadius;
+    let hitRadius = stats.blastRadius;
+    if (!isMobile) hitRadius += 30; if (isMobile) hitRadius += 50;
     enemies.forEach(e => {
         const dist = Math.hypot(e.x - x, e.y - y);
-        if (dist < hitRadius + e.size) { let dmg = stats.damage; e.hp -= dmg; e.x -= e.vx * 5; e.y -= e.vy * 5; createParticles(e.x, e.y, '#fff', 2); }
+        if (dist < hitRadius + e.size) { 
+            let dmg = stats.damage; if (Math.random() < stats.critChance) { dmg *= 2; createParticles(e.x, e.y, '#ffd700', 5); }
+            e.hp -= dmg; e.x -= e.vx * 5; e.y -= e.vy * 5; createParticles(e.x, e.y, '#fff', 2); 
+        }
     });
 }
 window.toggleShop = function() {
@@ -286,11 +330,11 @@ window.toggleShop = function() {
 };
 window.buyItem = function(type) {
     if(type === 'shield') {
-        if(score >= 5000) { score -= 5000; scoreHud.innerText = `SCORE: ${score}`; shieldActive = true; setTimeout(() => shieldActive = false, 10000); toggleShop(); } return;
+        if(gold >= 5000) { gold -= 5000; updateHud(); shieldActive = true; setTimeout(() => shieldActive = false, 10000); toggleShop(); } return;
     }
     let item = shopItems[type], cost = Math.floor(item.baseCost * Math.pow(1.5, item.level));
-    if (score >= cost) {
-        score -= cost; scoreHud.innerText = `SCORE: ${score}`; item.level++;
+    if (gold >= cost) { // 🌟 檢查金幣
+        gold -= cost; updateHud(); item.level++;
         if(type === 'damage') stats.damage += 10;
         if(type === 'blast') stats.blastRadius += 15;
         if(type === 'drone') turrets.push(new Turret(turrets.length));
@@ -298,27 +342,30 @@ window.buyItem = function(type) {
         if(type === 'lightning') {}
         if(type === 'missile') {} 
         if(type === 'regen') stats.regenRate += 1;
+        if(type === 'crit') stats.critChance += 0.05;
         document.getElementById(`cost-${type}`).innerText = `$${Math.floor(item.baseCost * Math.pow(1.5, item.level))}`;
         document.getElementById(`lvl-${type}`).innerText = `Lv${item.level}`;
     }
 };
+function showGameMsg(text, x, y, color) {
+    const msg = document.createElement('div'); msg.className = 'game-msg'; msg.innerText = text; msg.style.left = x + 'px'; msg.style.top = y + 'px'; msg.style.color = color; document.body.appendChild(msg); setTimeout(() => msg.remove(), 1000);
+}
 canvas.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
 canvas.addEventListener('touchstart', (e) => { e.preventDefault(); for (let i = 0; i < e.touches.length; i++) { handleInput(e.touches[i].clientX, e.touches[i].clientY); } }, {passive: false});
 function initGame() { gameModal.style.display = 'flex'; body.classList.add('game-active'); }
 function startGame() {
     gameModal.style.display = 'none'; canvas.style.display = 'block'; shopBtn.style.display = 'block'; integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
-    
-    // 🌟 電腦版福利：2000分
     gameRunning = true; gamePaused = false; 
-    score = isMobile ? 0 : 2000; 
-    scoreHud.innerText = `SCORE: ${score}`;
-    
+    score = 0; 
+    gold = isMobile ? 0 : 3000; // 🌟 電腦版開局金幣 3000
+    updateHud();
     maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
-    stats = { damage: 10, blastRadius: 50, regenRate: 0 }; if(isMobile) stats.blastRadius = 100;
-    enemies = []; turrets = []; bullets = []; missiles = []; lasers = []; particles = [];
+    stats = { damage: 10, blastRadius: 50, regenRate: 0, critChance: 0 }; if(isMobile) stats.blastRadius = 100;
+    enemies = []; turrets = []; bullets = []; missiles = []; lasers = []; particles = []; lightnings = [];
     for(let key in shopItems) shopItems[key].level = 0;
-    for(let i=0; i<5; i++) enemies.push(new Enemy());
-    spawnInterval = setInterval(spawnLogic, 400); autoWeaponInterval = setInterval(autoWeaponLogic, 1000);
+    // for(let i=0; i<5; i++) enemies.push(new Enemy()); // 移除開局怪
+    spawnInterval = setInterval(spawnLogic, 800); 
+    autoWeaponInterval = setInterval(autoWeaponLogic, 1000);
     gameLoop();
 }
 function stopGame() {
