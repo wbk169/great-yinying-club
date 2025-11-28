@@ -5,7 +5,7 @@ const CSV_FILE_PATH = 'rankings.csv';
 const NPC_LIST = {
     1: [], 
     2: [],
-    3: ['未入團強力路人1', '未入團強力路人2', '未入團強力路人3', '未入團強力路人4'], // 佔據 #41~#44
+    3: ['未入團強力路人1', '未入團強力路人2'], // 佔據 #41~#42
     4: ['未入團強力路人5'], // 佔據 #61
     5: []
 };
@@ -26,8 +26,9 @@ async function loadRankings() {
         const rows = csvText.trim().split('\n').slice(1);
 
         // --- 步驟 1：準備隊伍 ---
-        let waitingList = []; 
-        let leaderData = null; 
+        let waitingList = [];      // 一般排隊名單
+        let demotedList = [];      // 📉 自願降團名單 (優先去第五團)
+        let leaderData = null;     // 團長
 
         rows.forEach(row => {
             const columns = row.split(',');
@@ -35,12 +36,19 @@ async function loadRankings() {
             
             const name = columns[1].trim();
             const score = columns[2].trim();
+            // 讀取第四欄 (如果有寫的話)，用來判斷是否自願降團
+            const note = columns[3] ? columns[3].trim() : ""; 
+
             const playerData = { name: name, score: score, isLeader: false, isNPC: false };
 
             if (name === '陰帝') {
                 leaderData = playerData;
                 leaderData.isLeader = true;
+            } else if (note.includes('自願降團')) {
+                // 📉 發現標記！放入降團名單
+                demotedList.push(playerData);
             } else {
+                // 一般人放入排隊名單
                 waitingList.push(playerData);
             }
         });
@@ -60,7 +68,7 @@ async function loadRankings() {
             if (teamNum === 1 && leaderData) {
                 renderRow(tableBody, leaderData, globalRankCounter);
                 currentTeamCount++;
-                globalRankCounter++; // ⚡ 修正點：團長入座後，計數器 +1，下一位就會是 #2
+                globalRankCounter++;
             }
 
             // --- B. NPC 優先入座 ---
@@ -79,7 +87,18 @@ async function loadRankings() {
                 }
             });
 
-            // --- C. 真實玩家從隊伍中補位 ---
+            // --- C. 自願降團者入座 (只在第五團優先插入) ---
+            // 這樣他們會佔據五團的 #81, #82 位置
+            if (teamNum === 5) {
+                while (demotedList.length > 0) {
+                    const demotedPlayer = demotedList.shift();
+                    renderRow(tableBody, demotedPlayer, globalRankCounter);
+                    currentTeamCount++;
+                    globalRankCounter++;
+                }
+            }
+
+            // --- D. 真實玩家從隊伍中補位 ---
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) {
                 const player = waitingList.shift(); 
                 
@@ -114,7 +133,7 @@ function renderRow(container, player, rank) {
 
     // 特殊身分樣式
     if (player.isLeader) {
-        displayRank = '#1'; // 其實這裡 rank 進來已經是 1 了，寫死也沒關係
+        displayRank = '#1'; 
         displayScore = '👑 大陰團長';
         rankColor = '#FFD700'; 
         nameStyle = 'color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-weight: bold; font-size: 1.1em;';
@@ -138,39 +157,37 @@ function renderRow(container, player, rank) {
     container.appendChild(tr);
 }
 
-loadRankings();
-
-
 // ✨【新增】科技感游標控制邏輯
 const cursorDot = document.querySelector('[data-cursor-dot]');
 const cursorOutline = document.querySelector('[data-cursor-outline]');
 
-window.addEventListener("mousemove", function (e) {
-    const posX = e.clientX;
-    const posY = e.clientY;
+if (cursorDot && cursorOutline) {
+    window.addEventListener("mousemove", function (e) {
+        const posX = e.clientX;
+        const posY = e.clientY;
 
-    // 小點直接跟隨
-    cursorDot.style.left = `${posX}px`;
-    cursorDot.style.top = `${posY}px`;
+        cursorDot.style.left = `${posX}px`;
+        cursorDot.style.top = `${posY}px`;
 
-    // 大圈圈延遲跟隨 (增加動畫效果)
-    cursorOutline.animate({
-        left: `${posX}px`,
-        top: `${posY}px`
-    }, { duration: 500, fill: "forwards" });
-});
+        cursorOutline.animate({
+            left: `${posX}px`,
+            top: `${posY}px`
+        }, { duration: 500, fill: "forwards" });
+    });
 
-// 當滑鼠移到連結或表格時，游標變大
-document.addEventListener('mouseover', (e) => {
-    if (e.target.tagName === 'TR' || e.target.tagName === 'H3') {
-        cursorOutline.style.width = '60px';
-        cursorOutline.style.height = '60px';
-        cursorOutline.style.backgroundColor = 'rgba(0, 243, 255, 0.1)';
-    }
-});
+    document.addEventListener('mouseover', (e) => {
+        if (e.target.tagName === 'TR' || e.target.tagName === 'H3') {
+            cursorOutline.style.width = '60px';
+            cursorOutline.style.height = '60px';
+            cursorOutline.style.backgroundColor = 'rgba(0, 243, 255, 0.1)';
+        }
+    });
 
-document.addEventListener('mouseout', () => {
-    cursorOutline.style.width = '40px';
-    cursorOutline.style.height = '40px';
-    cursorOutline.style.backgroundColor = 'transparent';
-});
+    document.addEventListener('mouseout', () => {
+        cursorOutline.style.width = '40px';
+        cursorOutline.style.height = '40px';
+        cursorOutline.style.backgroundColor = 'transparent';
+    });
+}
+
+loadRankings();
