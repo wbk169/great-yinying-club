@@ -277,3 +277,54 @@ body.game-active header {
     pointer-events: none; /* 防止點到表格 */
     transition: 0.5s;
 }
+
+/* =========================================
+   🚨 V7.1 緊急修復補丁 (Fixes)
+   ========================================= */
+
+/* 1. 強制修正遊戲介面位置 (解決跑去左上角的問題) */
+.game-ui-container {
+    position: fixed !important; /* 強制固定 */
+    bottom: 80px !important;    /* 距離底部 */
+    right: 20px !important;     /* 距離右邊 */
+    top: auto !important;       /* 取消頂部定位 */
+    left: auto !important;      /* 取消左邊定位 */
+    z-index: 10002;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+/* 確保按鈕樣式正確 */
+.cy-btn {
+    background: rgba(0, 0, 0, 0.8); /* 加深背景確保可見 */
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
+    padding: 10px 20px;
+    font-family: 'Consolas', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+/* 2. 修復手機版標題消失的問題 */
+@media (max-width: 768px) {
+    /* 強制取消漸層文字，改回實心白色，確保手機一定看得到 */
+    .team-title {
+        background: none !important;
+        -webkit-text-fill-color: #fff !important; /* iOS 修正 */
+        color: #fff !important;
+        text-shadow: none !important;
+        display: block !important; /* 防止擠壓 */
+        font-size: 1.5em !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* 讓前面的裝飾方塊保持顏色 */
+    .tier-1-theme .team-title { color: var(--neon-gold) !important; -webkit-text-fill-color: var(--neon-gold) !important; }
+    .tier-2-theme .team-title { color: var(--neon-cyan) !important; -webkit-text-fill-color: var(--neon-cyan) !important; }
+    .tier-3-theme .team-title { color: var(--neon-green) !important; -webkit-text-fill-color: var(--neon-green) !important; }
+    .tier-4-theme .team-title { color: var(--neon-purple) !important; -webkit-text-fill-color: var(--neon-purple) !important; }
+    .tier-5-theme .team-title { color: var(--neon-red) !important; -webkit-text-fill-color: var(--neon-red) !important; }
+}
