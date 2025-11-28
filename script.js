@@ -130,7 +130,7 @@ async function loadRankings() {
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
 
-// 🎮 V18.0 Game Engine: 屍潮模式 (Horde Mode)
+// 🎮 V18.1 Game Engine
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('start-game-btn');
@@ -160,7 +160,7 @@ let shopItems = {
     lightning:{ baseCost: 4000, level: 0, name: "閃電" },
     regen:  { baseCost: 3000, level: 0, name: "修復" }
 };
-let stats = { damage: 10, blastRadius: 50, regenRate: 0 };
+let stats = { damage: 20, blastRadius: 50, regenRate: 0 }; // 預設傷害調整
 
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; isMobile = window.innerWidth < 768; if (isMobile && stats.blastRadius < 100) stats.blastRadius = 100; }
 window.addEventListener('resize', resizeCanvas);
@@ -172,14 +172,12 @@ function updateHud() {
     scoreHud.innerHTML = `SCORE: ${score}<br><span class="gold-text">🪙: ${gold}</span>`;
 }
 
-// 🌟 V18.0 更新：Enemy 類別支援強制指定等級
 class Enemy {
     constructor(forcedLevel = null) {
         let level;
         if (forcedLevel !== null) {
-            level = forcedLevel; // 強制生成指定等級的怪 (例如雜魚)
+            level = forcedLevel;
         } else {
-            // 原本的隨機強度邏輯
             let difficulty = 0;
             if(score > 500) difficulty = 2;
             if(score > 1500) difficulty = 4;
@@ -280,24 +278,17 @@ function autoWeaponLogic() {
     if(shopItems.missile.level > 0) { for(let i=0; i<shopItems.missile.level; i++) missiles.push(new Missile()); }
 }
 
-// 🌟 V18.0 屍潮生成邏輯
 function spawnLogic() {
     if (!gameRunning || gamePaused) return;
-    
-    // 1. 保底生成：每秒固定出 3 隻最弱的紅怪 (雜魚海)
-    for(let i=0; i<3; i++) {
-        enemies.push(new Enemy(0)); // 強制 Level 0
-    }
+    // 🌟 強制生成最弱怪 3 隻 (提供爽快感)
+    for(let i=0; i<3; i++) { enemies.push(new Enemy(0)); }
 
-    // 2. 機率生成：根據分數出強怪
     let spawnChance = 0.3 + (score / 5000);
     if (Math.random() < spawnChance) {
-        let count = 1;
-        if (score > 2000) count = 2; // 分數高再多生幾隻
-        for(let i=0; i<count; i++) enemies.push(new Enemy()); // 隨機等級
+        let count = 1; if (score > 2000) count = 2;
+        for(let i=0; i<count; i++) enemies.push(new Enemy());
     }
 
-    // BOSS 生成
     if (score > 2000 && score % 2000 < 100 && !bossSpawned) {
         let bossType = score > 10000 ? ENEMY_TYPES[9] : ENEMY_TYPES[8];
         let boss = new Enemy(); 
@@ -388,13 +379,13 @@ function startGame() {
     updateHud();
     
     maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
-    stats = { damage: 10, blastRadius: 50, regenRate: 0, critChance: 0 }; 
+    // 🌟 修正：初始傷害從 10 改為 20 (確保秒殺小怪)
+    stats = { damage: 20, blastRadius: 50, regenRate: 0, critChance: 0 }; 
     if(isMobile) stats.blastRadius = 100;
     
     enemies = []; turrets = []; bullets = []; missiles = []; lasers = []; particles = []; lightnings = [];
     for(let key in shopItems) shopItems[key].level = 0;
     
-    // 設定生成頻率為 1000ms (1秒)，因為 spawnLogic 內部會一次生 3 隻
     spawnInterval = setInterval(spawnLogic, 1000); 
     autoWeaponInterval = setInterval(autoWeaponLogic, 1000);
     gameLoop();
