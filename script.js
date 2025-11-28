@@ -5,8 +5,8 @@ const CSV_FILE_PATH = 'rankings.csv';
 const NPC_LIST = {
     1: [], 
     2: [],
-    3: ['未入團強力路人1', '未入團強力路人2', '未入團強力路人3', '未入團強力路人4'], // 這裡會佔據 #41~#44
-    4: ['未入團強力路人5'], // 這裡會佔據 #61
+    3: ['未入團強力路人1', '未入團強力路人2', '未入團強力路人3', '未入團強力路人4'], // 佔據 #41~#44
+    4: ['未入團強力路人5'], // 佔據 #61
     5: []
 };
 
@@ -25,9 +25,9 @@ async function loadRankings() {
         const csvText = await response.text();
         const rows = csvText.trim().split('\n').slice(1);
 
-        // --- 步驟 1：準備所有「真實玩家」的排隊隊伍 ---
-        let waitingList = []; // 等待分發的真實玩家清單
-        let leaderData = null; // 團長保留席
+        // --- 步驟 1：準備隊伍 ---
+        let waitingList = []; 
+        let leaderData = null; 
 
         rows.forEach(row => {
             const columns = row.split(',');
@@ -46,7 +46,7 @@ async function loadRankings() {
         });
 
         // --- 步驟 2：開始分發 (流水席邏輯) ---
-        let globalRankCounter = 1; // 全局排名計數器 (#1, #2, ...)
+        let globalRankCounter = 1; // 全局排名計數器
 
         // 依序處理 1~5 團
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
@@ -54,20 +54,18 @@ async function loadRankings() {
             if (!tableBody) continue;
 
             let currentTeamCount = 0; // 該團目前人數
-            const MAX_PER_TEAM = 20;  // 每團上限 20 人 (第五團如果爆滿會自動延伸)
+            const MAX_PER_TEAM = 20;  // 每團上限
 
             // --- A. 團長優先入座 (只在一團) ---
             if (teamNum === 1 && leaderData) {
                 renderRow(tableBody, leaderData, globalRankCounter);
                 currentTeamCount++;
-                // 注意：團長雖然顯示 #1，但我們計數器還是要跑，讓後面的人變成 #2
-                // 不過依照您的需求，團長佔位後，下一位應該是 #2，所以這裡不需特殊跳號
+                globalRankCounter++; // ⚡ 修正點：團長入座後，計數器 +1，下一位就會是 #2
             }
 
             // --- B. NPC 優先入座 ---
             const npcs = NPC_LIST[teamNum] || [];
             npcs.forEach(npcName => {
-                // 只有當該團還沒滿 20 人時才塞入 (雖然 NPC 通常是預設好的，不太會超過)
                 if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) {
                     renderRow(tableBody, { 
                         name: npcName, 
@@ -82,9 +80,7 @@ async function loadRankings() {
             });
 
             // --- C. 真實玩家從隊伍中補位 ---
-            // 只要 1. 隊伍還有人 AND (2. 該團還沒滿 20 人 OR 是第五團無上限)
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) {
-                // 從隊伍最前面抓一個人出來
                 const player = waitingList.shift(); 
                 
                 renderRow(tableBody, player, globalRankCounter);
@@ -118,7 +114,7 @@ function renderRow(container, player, rank) {
 
     // 特殊身分樣式
     if (player.isLeader) {
-        displayRank = '#1'; // 強制顯示 #1
+        displayRank = '#1'; // 其實這裡 rank 進來已經是 1 了，寫死也沒關係
         displayScore = '👑 大陰團長';
         rankColor = '#FFD700'; 
         nameStyle = 'color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); font-weight: bold; font-size: 1.1em;';
