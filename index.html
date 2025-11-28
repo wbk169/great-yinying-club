@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>大陰帝國俱樂部 | SYSTEM RANKING</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -27,13 +27,11 @@
             <button id="modal-start-btn" class="cy-btn">INITIATE (開始)</button>
         </div>
     </div>
-    <div id="game-hud" class="game-score-board">
-        SCORE: 0<br>
-        <span class="gold-text">🪙: 0</span>
-    </div>
+
     <div id="shop-modal" class="shop-modal">
         <div class="shop-container">
             <div class="shop-close-x" onclick="toggleShop()">×</div>
+
             <div class="shop-header">TACTICAL ARMORY (軍火庫)</div>
             
             <div class="shop-card" onclick="buyItem('damage')">
@@ -66,28 +64,31 @@
     </div>
 
     <div class="game-ui-container">
-        <div id="game-hud" class="game-score-board">SCORE: 0</div>
+        <div id="game-hud" class="game-score-board">
+            SCORE: 0<br>
+            <span class="gold-text">🪙: 0</span>
+        </div>
         <button id="start-game-btn" class="cy-btn">SYSTEM DEFENSE</button>
         <button id="shop-btn" class="cy-btn shop" style="display: none;" onclick="toggleShop()">戰術升級</button>
         <button id="stop-game-btn" class="cy-btn danger" style="display: none;">EXIT MODE</button>
     </div>
+
     <div class="crosshair-line crosshair-x"></div>
     <div class="crosshair-line crosshair-y"></div>
     <div class="scroll-progress-container">
         <div class="scroll-progress-bar" id="progressBar"></div>
     </div>
+    
     <div class="sys-monitor" id="sysMonitor">
         FPS: 60<br>
         PING: 12ms<br>
         MEM: 32%
     </div>
+
     <div class="hud-corner hud-tl"></div>
     <div class="hud-corner hud-tr"></div>
     <div class="hud-corner hud-bl"></div>
     <div class="hud-corner hud-br"></div>
-
-    <div class="noise-overlay"></div>
-    <div class="spotlight-mask"></div>
 
     <div id="boot-screen">
         <div id="terminal-text" class="blink-cursor"></div>
@@ -96,6 +97,7 @@
     <div class="cursor-outline" data-cursor-outline></div>
     <div class="bg-particles"></div>
     <div class="scanlines"></div>
+
     <header>
         <h1>🦅 大陰帝國俱樂部 2025 ⚾</h1>
         <p>MLB：九局職棒25 | 2025 MLB RANKING</p>
@@ -149,7 +151,7 @@
     <script src="script.js"></script>
 
     <footer>
-        <p>&copy; 2025 大陰帝國俱樂部 | Designed for Victory</p>
+        <p>&copy; 2025 大陰帝國俱樂部 | Designed for Indeed</p>
     </footer>
 </body>
 </html>
