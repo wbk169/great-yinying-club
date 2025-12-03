@@ -253,4 +253,20 @@ function renderRow(container, player, rank) {
     if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
     container.appendChild(tr);
 }
+// ... 在 renderRow 函式中 ...
+
+let icon = '⚾'; // 預設圖示
+if (player.isLeader) icon = '🏆'; // 團長是獎盃
+else if (player.isNPC) icon = '🤖'; // NPC 是機器人
+else if (rank <= 3) icon = '🔥'; // 前三名是火焰
+
+// 更新 HTML
+tr.innerHTML = `
+    <td class="rank">${displayRank}</td>
+    <td class="hacker-text name" data-value="${player.name}">
+        <span style="margin-right:8px; font-size:0.8em;">${icon}</span>${player.name}
+    </td>
+    <td class="score">
+        </td>
+`;
 loadRankings();
