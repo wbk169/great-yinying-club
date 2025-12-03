@@ -143,15 +143,47 @@ setInterval(updateSysMonitor, 1000);
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
+    const stamp = document.querySelector('.access-stamp');
+    
     if (!textElement || !bootScreen) return;
-    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", "ACCESS GRANTED.", "SYSTEM ONLINE."];
+    
+    // 鎖定捲軸
+    document.body.classList.add('locked');
+
+    const logs = [
+        "INITIALIZING SYSTEM...", 
+        "LOADING KERNEL MODULES...", 
+        "CONNECTING TO MLB DATABASE...", 
+        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
+        "SYSTEM ONLINE."
+    ];
     let lineIndex = 0;
+    
     function typeLine() {
         if (lineIndex < logs.length) {
-            const line = document.createElement('div'); line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line); lineIndex++; setTimeout(typeLine, Math.random() * 100 + 50);
+            const line = document.createElement('div');
+            line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line);
+            lineIndex++;
+            setTimeout(typeLine, Math.random() * 80 + 30); // 打字速度
         } else {
-            setTimeout(() => { bootScreen.style.transition = "opacity 0.8s ease"; bootScreen.style.opacity = "0"; setTimeout(() => { bootScreen.style.display = "none"; }, 800); }, 500);
+            // 🌟 文字跑完，蓋章！
+            setTimeout(() => {
+                textElement.style.opacity = 0; // 文字淡出
+                if(stamp) stamp.classList.add('stamp-visible');
+                
+                // 🌟 閘門開啟
+                setTimeout(() => {
+                    document.body.classList.add('loaded'); // CSS 觸發閘門滑開
+                    document.body.classList.remove('locked'); // 解鎖捲軸
+                    
+                    // 移除 DOM
+                    setTimeout(() => { 
+                        bootScreen.style.display = 'none'; 
+                        document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+                    }, 1000);
+                }, 800);
+            }, 500);
         }
     }
     typeLine();
