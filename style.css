@@ -19,9 +19,7 @@ body {
     overflow-x: hidden; overflow-y: auto;
     cursor: default; 
     touch-action: manipulation;
-    user-select: none; -webkit-user-select: none;
 }
-body.game-active { overflow: hidden; }
 @media (pointer: fine) { body { cursor: none; } }
 
 /* 捲軸 */
@@ -80,6 +78,10 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 .row-npc { border-left: 3px solid var(--neon-green); } .row-npc .name, .row-npc .score { color: var(--neon-green); font-weight: bold; text-shadow: 0 0 5px rgba(0,255,127,0.5); }
 .row-demoted { border-left: 3px solid var(--neon-red); }
 .demoted-tag { display: inline-block; border: 1px solid var(--neon-red); color: var(--neon-red); padding: 1px 6px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
+/* 新血標籤 */
+.new-tag { display: inline-block; border: 1px solid #39ff14; color: #39ff14; padding: 1px 6px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); animation: pulse-green 2s infinite; }
+@keyframes pulse-green { 0% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); } 50% { box-shadow: 0 0 15px rgba(57, 255, 20, 0.6); } 100% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); } }
+
 .rank { font-weight: bold; color: var(--neon-cyan); white-space: nowrap; }
 .hacker-text { font-family: 'Consolas', monospace; cursor: crosshair; }
 .score { color: #aaa; font-size: 0.9em; }
@@ -87,65 +89,6 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 footer { border-top: 1px solid var(--border-color); background: #000; padding: 40px; text-align: center; color: #444; }
 .cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; }
 .cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, background-color 0.2s; opacity: 0; }
-
-/* 🌟 遊戲 UI */
-#game-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9995; pointer-events: auto; display: none; cursor: crosshair; touch-action: none; }
-.game-ui-container { position: fixed !important; bottom: 100px !important; right: 20px !important; top: auto !important; left: auto !important; z-index: 10002; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-.cy-btn { background: rgba(0, 0, 0, 0.9); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); padding: 10px 20px; font-family: 'Rajdhani', 'Consolas', sans-serif; font-size: 1.1em; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: 0.1s; touch-action: manipulation; }
-.cy-btn:active { transform: scale(0.95); background: var(--neon-cyan); color: #000; }
-.cy-btn.danger { border-color: var(--neon-red); color: var(--neon-red); }
-.cy-btn.danger:active { background: var(--neon-red); color: #000; }
-.cy-btn.shop { border-color: var(--neon-gold); color: var(--neon-gold); }
-.cy-btn.shop:active { background: var(--neon-gold); color: #000; }
-.game-score-board { font-family: 'Consolas', monospace; font-size: 2em; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); display: none; background: rgba(0, 0, 0, 0.7); padding: 10px 20px; border-left: 3px solid var(--neon-gold); margin-bottom: 10px; }
-body.game-active main, body.game-active header { filter: blur(8px) brightness(0.2); pointer-events: none; transition: 0.5s; }
-
-.shop-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.95); z-index: 10020; display: none; justify-content: center; align-items: flex-start; overflow-y: auto; backdrop-filter: blur(10px); padding-top: 20px; }
-.shop-container { width: 90%; max-width: 1000px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; padding: 20px; background: rgba(0, 20, 40, 0.8); border: 2px solid var(--neon-cyan); box-shadow: 0 0 50px rgba(0, 243, 255, 0.1); margin-bottom: 50px; position: relative; }
-.shop-close-x { position: absolute; top: 10px; right: 20px; color: var(--neon-red); font-size: 2.5em; cursor: pointer; font-family: Arial, sans-serif; line-height: 1; z-index: 10030; }
-.shop-close-x:hover { text-shadow: 0 0 10px var(--neon-red); }
-.shop-header { grid-column: 1 / -1; text-align: center; color: var(--neon-gold); font-size: 2em; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 5px; border-bottom: 1px solid var(--neon-gold); }
-.shop-card { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--border-color); padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; touch-action: manipulation; }
-.shop-card:hover { border-color: var(--neon-cyan); background: rgba(0, 243, 255, 0.1); transform: translateY(-5px); }
-.shop-card:active { transform: scale(0.98); }
-.shop-card h3 { color: #fff; margin: 5px 0; font-size: 1.2em; }
-.shop-card p { color: #888; font-size: 0.8em; margin-bottom: 10px; height: 30px; }
-.shop-card .cost { color: var(--neon-gold); font-weight: bold; font-size: 1.2em; display: block; margin-top: 5px; }
-.shop-card .level { position: absolute; top: 5px; right: 5px; font-size: 0.7em; color: var(--neon-cyan); background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 3px; }
-.shop-close-btn { grid-column: 1 / -1; margin-top: 20px; padding: 15px; background: var(--neon-red); color: #000; border: none; font-weight: bold; font-size: 1.2em; cursor: pointer; text-transform: uppercase; }
-
-.integrity-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); width: 300px; height: 20px; border: 1px solid var(--neon-red); background: rgba(0,0,0,0.8); z-index: 10005; display: none; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 10px) 100%, 0 100%, 0 5px); }
-.integrity-bar { width: 100%; height: 100%; background: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); transition: width 0.3s; }
-.shield-bar { background: var(--neon-cyan) !important; box-shadow: 0 0 10px var(--neon-cyan) !important; }
-.integrity-text { position: absolute; top: -25px; width: 100%; text-align: center; color: var(--neon-red); font-weight: bold; letter-spacing: 2px; font-size: 0.9em; }
-
-.game-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 10010; display: none; justify-content: center; align-items: center; flex-direction: column; }
-.modal-content { background: var(--panel-bg); border: 1px solid var(--neon-cyan); padding: 30px; max-width: 90%; width: 400px; text-align: center; box-shadow: 0 0 30px rgba(0, 243, 255, 0.2); }
-.modal-content h2 { text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--neon-cyan); padding-bottom: 10px; color: var(--neon-cyan); }
-.modal-content ul { text-align: left; margin: 0 auto 30px auto; padding-left: 20px; display: inline-block; list-style: none; }
-.modal-content li { margin-bottom: 10px; color: #ccc; position: relative; }
-.modal-content li::before { content: '>'; color: var(--neon-red); font-weight: bold; margin-right: 8px; }
-.modal-content li strong { color: #fff; }
-.game-msg { position: absolute; color: #fff; font-weight: bold; font-family: 'Consolas', sans-serif; pointer-events: none; animation: floatUp 1s forwards; text-shadow: 0 0 5px #fff; z-index: 10006;}
-@keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
-
-/* 🌟 BOSS 警報特效 */
-.boss-warning-overlay {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(255, 0, 0, 0.2);
-    z-index: 10004; pointer-events: none; display: none;
-    animation: alarmFlash 0.5s infinite alternate;
-}
-@keyframes alarmFlash { from { opacity: 0.2; } to { opacity: 0.6; } }
-
-.boss-warning-text {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    font-size: 4em; color: var(--neon-red); font-weight: bold;
-    text-shadow: 0 0 20px var(--neon-red); z-index: 10005; pointer-events: none;
-    display: none; animation: textPulse 0.5s infinite alternate;
-    white-space: nowrap;
-}
-@keyframes textPulse { from { transform: translate(-50%, -50%) scale(1); } to { transform: translate(-50%, -50%) scale(1.1); } }
 
 #boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: flex; align-items: center; padding: 20px; }
 #terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; }
@@ -156,16 +99,13 @@ body.game-active main, body.game-active header { filter: blur(8px) brightness(0.
     h2 { text-align: left; font-size: 1.3em; }
     .team-section { padding: 20px; opacity: 1; transform: none; overflow-x: auto; }
     .ranking-table td { padding: 12px 10px; font-size: 0.9em; }
-    .game-score-board { position: fixed; top: 60px; left: 10px; font-size: 1.2em; border: none; padding: 5px; background: none; text-shadow: 0 0 5px var(--neon-gold); }
-    .game-ui-container { bottom: 120px; right: 10px; }
-    .shop-container { grid-template-columns: repeat(2, 1fr); padding: 10px; gap: 10px; }
+    /* 手機版標題強制實心，避免透明 */
     .team-title { background: none !important; -webkit-text-fill-color: #fff !important; color: #fff !important; text-shadow: none !important; display: block !important; font-size: 1.5em !important; margin-bottom: 15px !important; }
     .tier-1-theme .team-title { color: var(--neon-gold) !important; -webkit-text-fill-color: var(--neon-gold) !important; }
     .tier-2-theme .team-title { color: var(--neon-cyan) !important; -webkit-text-fill-color: var(--neon-cyan) !important; }
     .tier-3-theme .team-title { color: var(--neon-green) !important; -webkit-text-fill-color: var(--neon-green) !important; }
     .tier-4-theme .team-title { color: var(--neon-purple) !important; -webkit-text-fill-color: var(--neon-purple) !important; }
     .tier-5-theme .team-title { color: var(--neon-red) !important; -webkit-text-fill-color: var(--neon-red) !important; }
-    .boss-warning-text { font-size: 2em; }
 }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
@@ -173,22 +113,57 @@ body.game-active main, body.game-active header { filter: blur(8px) brightness(0.
     .team-section { opacity: 1; transform: none; }
 }
 
-/* 🌟 新增：新血標籤樣式 */
-.new-tag { 
-    display: inline-block; 
-    border: 1px solid #39ff14; /* 螢光綠 */
-    color: #39ff14; 
-    padding: 1px 6px; 
-    border-radius: 4px; 
-    font-size: 0.75em; 
-    margin-left: 8px; 
-    vertical-align: middle;
-    box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); /* 綠色微光 */
-    animation: pulse-green 2s infinite;
+/* 🌟 V22.0 新增：戰力能量條 (Power Bar) */
+.power-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* 靠右對齊 */
+    justify-content: center;
 }
 
-@keyframes pulse-green {
-    0% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); }
-    50% { box-shadow: 0 0 15px rgba(57, 255, 20, 0.6); }
-    100% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); }
+.power-bar-container {
+    width: 120px; /* 條的總長度 */
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    margin-top: 4px;
+    position: relative;
+    overflow: hidden;
+    clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); /* 賽博切角 */
+}
+
+.power-bar-fill {
+    height: 100%;
+    /* 預設青色，JS 會根據長度改變顏色 */
+    background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan));
+    width: 0%; /* 初始 0，由 JS 動畫撐開 */
+    box-shadow: 0 0 8px var(--neon-cyan);
+    position: relative;
+    transition: width 1s cubic-bezier(0.22, 0.61, 0.36, 1); /* 彈性動畫 */
+}
+
+/* 流光特效 */
+.power-bar-fill::after {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+    transform: skewX(-45deg) translateX(-150%);
+    animation: shimmer 2.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: skewX(-45deg) translateX(-150%); }
+    100% { transform: skewX(-45deg) translateX(150%); }
+}
+
+/* 棒球圖示微調 */
+.baseball-icon {
+    margin-right: 8px;
+    font-size: 0.9em;
+    vertical-align: middle;
+    filter: drop-shadow(0 0 2px var(--neon-cyan));
+}
+
+/* 手機版縮短一點 */
+@media (max-width: 768px) {
+    .power-bar-container { width: 70px; }
 }

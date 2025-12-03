@@ -9,6 +9,9 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
+// ==========================================
+// 1. 網站視覺特效
+// ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
 function hackEffect(element) {
     let iterations = 0; const originalText = element.dataset.value || element.innerText; 
@@ -21,6 +24,7 @@ function hackEffect(element) {
         if(iterations >= originalText.length) clearInterval(interval); iterations += 1 / 2; 
     }, 30);
 }
+
 function initMagnetic() {
     if (window.innerWidth < 768) return; 
     const magnets = document.querySelectorAll('.team-title');
@@ -33,6 +37,7 @@ function initMagnetic() {
         magnet.addEventListener('mouseleave', () => { magnet.style.transform = 'translate(0px, 0px)'; });
     });
 }
+
 function initScrollEffects() {
     const progressBar = document.getElementById('progressBar');
     const titles = document.querySelectorAll('.team-title');
@@ -47,12 +52,14 @@ function initScrollEffects() {
         if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
     });
 }
+
 function updateSysMonitor() {
     const monitor = document.getElementById('sysMonitor'); if (!monitor) return;
     const now = new Date();
     monitor.innerHTML = `SYS_TIME: ${now.toLocaleTimeString('en-US', { hour12: false })}<br>FPS: ${Math.floor(Math.random()*5+55)}<br>PING: ${Math.floor(Math.random()*10+10)}ms<br>STATUS: ONLINE`;
 }
 setInterval(updateSysMonitor, 1000);
+
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
@@ -76,6 +83,7 @@ function runBootSequence() {
     }
     typeLine();
 }
+
 function initCursor() {
     if (window.innerWidth < 768) return;
     const cursorDot = document.querySelector('[data-cursor-dot]');
@@ -90,39 +98,32 @@ function initCursor() {
     });
 }
 
-// 🌟 V21.0 更新：支援新血標籤渲染
+// ==========================================
+// 2. 排名資料渲染
+// ==========================================
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr'); 
     tr.style.animation = `fadeIn 0.5s ease forwards`;
     let displayRank = `#${rank}`;
     let displayScore = `(PR: ${player.score})`;
     
-    // 判斷特殊身分並添加 Class
     if (player.isLeader) { 
         tr.classList.add('row-leader'); 
-        displayRank = '#1'; 
-        displayScore = '👑 大陰團長'; 
+        displayRank = '#1'; displayScore = '👑 大陰團長'; 
     } 
     else if (player.isNPC) { 
         tr.classList.add('row-npc'); 
         displayScore = '⚡ 強力NPC'; 
     } 
     else {
-        // 一般玩家，處理標籤
         let tagsHtml = '';
-        
-        // 1. 自願降團標籤
         if (player.isDemoted) { 
             tr.classList.add('row-demoted'); 
             tagsHtml += `<span class="demoted-tag">自願降團</span>`;
         }
-        
-        // 2. 新血標籤 (🌟 新增邏輯)
         if (player.isNew) {
             tagsHtml += `<span class="new-tag">新血</span>`;
         }
-
-        // 組合分數與標籤
         displayScore += tagsHtml;
     }
 
@@ -140,30 +141,20 @@ async function loadRankings() {
         rows.forEach(row => {
             const columns = row.split(','); if (columns.length < 3) return;
             const name = columns[1].trim(), score = columns[2].trim();
-            const note = columns[3] ? columns[3].trim() : ""; // 讀取備註欄
+            const note = columns[3] ? columns[3].trim() : ""; 
             
             const playerData = { 
-                name: name, 
-                score: score, 
-                isLeader: false, 
-                isNPC: false, 
-                isDemoted: false,
-                isNew: false // 🌟 初始化新血狀態
+                name: name, score: score, 
+                isLeader: false, isNPC: false, isDemoted: false, isNew: false 
             };
 
-            if (name === '陰帝') { 
-                leaderData = playerData; leaderData.isLeader = true; 
-            } 
+            if (name === '陰帝') { leaderData = playerData; leaderData.isLeader = true; } 
             else {
-                // 檢查標籤
                 if (note.includes('自願降團')) playerData.isDemoted = true;
-                if (note.includes('新血')) playerData.isNew = true; // 🌟 檢查新血
+                if (note.includes('新血')) playerData.isNew = true;
 
-                if (playerData.isDemoted) {
-                    demotedList.push(playerData); 
-                } else {
-                    waitingList.push(playerData); 
-                }
+                if (playerData.isDemoted) { demotedList.push(playerData); } 
+                else { waitingList.push(playerData); }
             }
         });
         
@@ -187,323 +178,79 @@ async function loadRankings() {
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
-
-// 🎮 V21.0 Game Engine (保留所有遊戲功能)
-const canvas = document.getElementById('game-canvas');
-const ctx = canvas.getContext('2d');
-const startBtn = document.getElementById('start-game-btn');
-const stopBtn = document.getElementById('stop-game-btn');
-const shopBtn = document.getElementById('shop-btn');
-const modalStartBtn = document.getElementById('modal-start-btn');
-const scoreHud = document.getElementById('game-hud');
-const hpBar = document.getElementById('hp-bar');
-const shopModal = document.getElementById('shop-modal');
-const integrityUI = document.getElementById('integrity-ui');
-const gameModal = document.getElementById('game-start-modal');
-const body = document.body;
-
-let gameRunning = false, gamePaused = false;
-let score = 0, gold = 0;
-let maxHp = 100, currentHp = 100;
-let enemies = [], particles = [], bullets = [], turrets = [], missiles = [], lasers = [], lightnings = [];
-let bossSpawned = false, animationFrameId, spawnInterval, autoWeaponInterval;
-let isMobile = window.innerWidth < 768;
-let shieldActive = false;
-let shopItems = {
-    damage: { baseCost: 100, level: 1, name: "火力" },
-    blast:  { baseCost: 500, level: 1, name: "擴散" },
-    drone:  { baseCost: 1000, level: 0, name: "無人機" },
-    money:  { baseCost: 2000, level: 0, name: "挖礦" }, 
-    laser:  { baseCost: 2500, level: 0, name: "雷射" },
-    missile:{ baseCost: 3000, level: 0, name: "導彈" },
-    lightning:{ baseCost: 4000, level: 0, name: "閃電" },
-    regen:  { baseCost: 3000, level: 0, name: "修復" },
-    crit:   { baseCost: 1500, level: 0, name: "暴擊" }
-};
-let stats = { damage: 20, blastRadius: 50, regenRate: 0, critChance: 0, goldMultiplier: 1.0 }; 
-
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; isMobile = window.innerWidth < 768; if (isMobile && stats.blastRadius < 100) stats.blastRadius = 100; }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-const ENEMY_TYPES = [{ color: '#ff2a2a', hp: 10, speed: 2.5, size: 20, score: 10 }, { color: '#ff7f50', hp: 30, speed: 3.0, size: 22, score: 20 }, { color: '#bc13fe', hp: 150, speed: 1.0, size: 35, score: 50 }, { color: '#00ff00', hp: 50, speed: 2.0, size: 25, score: 30 }, { color: '#00f3ff', hp: 80, speed: 1.5, size: 30, score: 40 }, { color: '#ff00ff', hp: 200, speed: 1.2, size: 38, score: 60 }, { color: '#ffffff', hp: 300, speed: 0.8, size: 45, score: 100 }, { color: '#888888', hp: 30, speed: 4.5, size: 15, score: 25 }, { color: '#ffd700', hp: 3000, speed: 0.5, size: 80, score: 1000 }, { color: '#ff4757', hp: 8000, speed: 0.4, size: 100, score: 5000 }];
-
-function updateHud() {
-    scoreHud.innerHTML = `SCORE: ${score}<br><span class="gold-text">🪙: ${Math.floor(gold)}</span>`;
-}
-
-// BOSS 警報
-function createBossAlertUI() {
-    if(!document.querySelector('.boss-warning-overlay')) {
-        const overlay = document.createElement('div'); overlay.className = 'boss-warning-overlay';
-        const text = document.createElement('div'); text.className = 'boss-warning-text'; text.innerText = "WARNING: BOSS APPROACHING";
-        document.body.appendChild(overlay); document.body.appendChild(text);
-    }
-}
-createBossAlertUI();
-
-function triggerBossWarning() {
-    const overlay = document.querySelector('.boss-warning-overlay');
-    const text = document.querySelector('.boss-warning-text');
-    overlay.style.display = 'block'; text.style.display = 'block';
-    setTimeout(() => { overlay.style.display = 'none'; text.style.display = 'none'; }, 3000);
-}
-
-class Enemy {
-    constructor(forcedLevel = null) {
-        let level;
-        if (forcedLevel !== null) {
-            level = forcedLevel;
-        } else {
-            let maxTier = 0;
-            if (score > 1000) maxTier = 1;
-            if (score > 2500) maxTier = 2;
-            if (score > 4000) maxTier = 4;
-            if (score > 6000) maxTier = 6;
-            if (score > 8000) maxTier = 7;
-            level = Math.floor(Math.random() * (maxTier + 1));
-        }
-
-        let type = ENEMY_TYPES[level];
-        this.size = type.size; 
-        this.maxHp = type.hp * (1 + (score/10000) * 0.2); 
-        this.hp = this.maxHp;
-        this.speed = isMobile ? type.speed * 0.7 : type.speed; 
-        this.color = type.color; 
-        this.scoreValue = type.score;
-        
-        if (Math.random() > 0.5) { this.x = Math.random() > 0.5 ? -this.size : canvas.width + this.size; this.y = Math.random() * canvas.height; } 
-        else { this.x = Math.random() * canvas.width; this.y = Math.random() > 0.5 ? -this.size : canvas.height + this.size; }
-        const angle = Math.atan2(canvas.height/2 - this.y, canvas.width/2 - this.x);
-        this.vx = Math.cos(angle) * this.speed; this.vy = Math.sin(angle) * this.speed;
-    }
-    update() { this.x += this.vx; this.y += this.vy; if (Math.hypot(this.x - canvas.width/2, this.y - canvas.height/2) < 50) { this.hp = 0; takeDamage(10); } }
-    draw() { ctx.strokeStyle = this.color; ctx.lineWidth = 2; ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size); ctx.fillStyle = this.color; ctx.globalAlpha = 0.2; ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size); ctx.globalAlpha = 1.0; }
-}
-class Turret {
-    constructor(index) { this.index = index; this.distance = 100 + (index * 5); this.angle = 0; this.fireCooldown = 0; }
-    update() {
-        this.angle += 0.02 + (this.index%2===0?0:-0.01);
-        this.x = canvas.width/2 + Math.cos(this.angle)*this.distance; this.y = canvas.height/2 + Math.sin(this.angle)*this.distance;
-        if(this.fireCooldown <= 0) { let target = getNearestEnemy(this.x, this.y, 300); if(target) { bullets.push(new Bullet(this.x, this.y, target, 20)); this.fireCooldown = 30; } } else this.fireCooldown--;
-    }
-    draw() { ctx.fillStyle = '#00f3ff'; ctx.beginPath(); ctx.arc(this.x, this.y, 5, 0, Math.PI*2); ctx.fill(); }
-}
-class Missile {
-    constructor() { this.x = canvas.width/2; this.y = canvas.height/2; this.speed = 4; this.target = getNearestEnemy(this.x, this.y, 2000); this.life = 200; }
-    update() {
-        if(!this.target || this.target.hp <= 0) this.target = getNearestEnemy(this.x, this.y, 2000);
-        if(this.target) {
-            let angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-            this.x += Math.cos(angle) * this.speed; this.y += Math.sin(angle) * this.speed;
-            if(Math.hypot(this.x - this.target.x, this.y - this.target.y) < 30) { this.life = 0; createParticles(this.x, this.y, '#ffaa00', 10); this.target.hp -= 100; }
-        } this.life--;
-    }
-    draw() { ctx.fillStyle = '#ffaa00'; ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill(); }
-}
-class Laser {
-    constructor() { this.active = false; this.cooldown = 0; this.maxCooldown = 120; }
-    update() {
-        if(this.cooldown > 0) this.cooldown--; else {
-            this.active = true; this.angle = Math.random() * Math.PI * 2; setTimeout(() => this.active = false, 200); this.cooldown = this.maxCooldown;
-            enemies.forEach(e => { e.hp -= 50; createParticles(e.x, e.y, '#00ff00', 2); });
-        }
-    }
-    draw() { if(this.active) { ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 5; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(canvas.width/2, canvas.height/2); ctx.lineTo(canvas.width/2 + Math.cos(this.angle)*2000, canvas.height/2 + Math.sin(this.angle)*2000); ctx.stroke(); ctx.globalAlpha = 1; } }
-}
-class Lightning {
-    constructor(startX, startY, targets) {
-        this.startX = startX; this.startY = startY; this.targets = targets; this.life = 10;
-    }
-    update() { this.life--; }
-    draw() {
-        if (this.targets.length > 0) {
-            ctx.strokeStyle = '#bc13fe'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(this.startX, this.startY);
-            this.targets.forEach(e => ctx.lineTo(e.x, e.y)); ctx.stroke();
-        }
-    }
-}
-class Bullet {
-    constructor(x, y, target, damage) { this.x = x; this.y = y; this.target = target; this.damage = damage; this.active = true; let angle = Math.atan2(target.y - y, target.x - x); this.vx = Math.cos(angle)*10; this.vy = Math.sin(angle)*10; }
-    update() {
-        this.x += this.vx; this.y += this.vy;
-        if(Math.hypot(this.x - this.target.x, this.y - this.target.y) < this.target.size) { this.target.hp -= this.damage; this.active = false; }
-        if(this.x < 0 || this.x > canvas.width) this.active = false;
-    }
-    draw() { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill(); }
-}
-function getNearestEnemy(x, y, range) {
-    let nearest = null, min = range;
-    enemies.forEach(e => { let d = Math.hypot(e.x - x, e.y - y); if(d < min) { min = d; nearest = e; } });
-    return nearest;
-}
-function createParticles(x, y, color, count) { for(let i=0; i<count; i++) particles.push({ x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, life:1, color, size:3 }); }
-function takeDamage(amount) {
-    if(shieldActive) return;
-    currentHp -= amount; hpBar.style.width = `${Math.max(0, currentHp/maxHp*100)}%`;
-    if(currentHp <= 0) { stopGame(); alert(`GAME OVER! Score: ${score}`); }
-}
-function autoWeaponLogic() {
-    if(!gameRunning || gamePaused) return;
-    if(stats.regenRate > 0 && currentHp < maxHp) { currentHp = Math.min(currentHp + stats.regenRate, maxHp); hpBar.style.width = `${(currentHp / maxHp) * 100}%`; }
-    if(shopItems.lightning.level > 0) {
-        let targets = enemies.slice(0, shopItems.lightning.level + 2);
-        if(targets.length > 0) {
-            targets.forEach(e => { e.hp -= 30; createParticles(e.x, e.y, '#bc13fe', 5); });
-            lightnings.push(new Lightning(canvas.width/2, canvas.height/2, targets));
-        }
-    }
-    if(shopItems.missile.level > 0) { for(let i=0; i<shopItems.missile.level; i++) missiles.push(new Missile()); }
-}
-
-function spawnLogic() {
-    if (!gameRunning || gamePaused) return;
-    // 保底
-    for(let i=0; i<3; i++) { enemies.push(new Enemy(0)); }
-
-    let spawnChance = 0.2;
-    if (score > 1000) spawnChance = 0.4;
-    if (score > 3000) spawnChance = 0.7;
-    if (score > 6000) spawnChance = 0.9;
-
-    if (Math.random() < spawnChance) {
-        let count = 1;
-        if (score > 2000) count = 2;
-        if (score > 5000) count = 3; 
-        for(let i=0; i<count; i++) enemies.push(new Enemy());
-    }
-
-    if (score > 3000 && score % 5000 < 100 && !bossSpawned) {
-        bossSpawned = true;
-        triggerBossWarning();
-        setTimeout(() => {
-            let bossCount = Math.floor(score / 5000); 
-            let bossType = score > 10000 ? ENEMY_TYPES[9] : ENEMY_TYPES[8];
-            for(let k=0; k<bossCount; k++) {
-                let boss = new Enemy(); 
-                boss.type = 'boss'; boss.size = bossType.size; boss.hp = bossType.hp; boss.maxHp = bossType.hp; boss.speed = bossType.speed; boss.color = bossType.color; boss.scoreValue = bossType.score;
-                enemies.push(boss);
-            }
-        }, 3000);
-    }
-    if (score % 5000 > 200) bossSpawned = false;
-}
-
-function gameLoop() {
-    if (!gameRunning) return;
-    if (!gamePaused) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height/2, 20, 0, Math.PI*2); ctx.stroke(); ctx.fillStyle = "#00f3ff"; ctx.fillText("CORE", canvas.width/2 - 15, canvas.height/2 + 4);
-        turrets.forEach(t => { t.update(); t.draw(); });
-        missiles.forEach((m, i) => { m.update(); m.draw(); if(m.life<=0) missiles.splice(i,1); });
-        lasers.forEach(l => { l.update(); l.draw(); });
-        lightnings.forEach((l, i) => { l.update(); l.draw(); if(l.life<=0) lightnings.splice(i,1); });
-        bullets.forEach((b, i) => { b.update(); b.draw(); if (!b.active) bullets.splice(i, 1); });
-        enemies.forEach((e, i) => { e.update(); e.draw(); if (e.hp <= 0) { 
-            score += e.scoreValue; 
-            // 🌟 金幣 = 分數 * 倍率
-            let earnedGold = Math.ceil(e.scoreValue * stats.goldMultiplier);
-            gold += earnedGold; 
-            updateHud(); 
-            showGameMsg(`+$${earnedGold}`, e.x, e.y, '#ffd700');
-            createParticles(e.x, e.y, e.color, 10); enemies.splice(i, 1); 
-        } });
-        particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.05; if (p.life <= 0) particles.splice(i, 1); else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.globalAlpha = 1.0; } });
-    }
-    animationFrameId = requestAnimationFrame(gameLoop);
-}
-
-function handleInput(x, y) {
-    if (!gameRunning || gamePaused) return;
-    createParticles(x, y, '#ffffff', 5);
-    let hitRadius = stats.blastRadius;
-    if (!isMobile) hitRadius += 30; if (isMobile) hitRadius += 50;
-    enemies.forEach(e => {
-        const dist = Math.hypot(e.x - x, e.y - y);
-        if (dist < hitRadius + e.size) { 
-            let dmg = stats.damage; if (Math.random() < stats.critChance) { dmg *= 2; createParticles(e.x, e.y, '#ffd700', 5); }
-            e.hp -= dmg; e.x -= e.vx * 5; e.y -= e.vy * 5; createParticles(e.x, e.y, '#fff', 2); 
-        }
-    });
-}
-
-window.toggleShop = function() {
-    if(!gameRunning) return;
-    gamePaused = !gamePaused;
-    if(gamePaused) {
-        shopModal.style.display = 'flex';
-        for(let key in shopItems) {
-            let item = shopItems[key];
-            let costEl = document.getElementById(`cost-${key}`), lvlEl = document.getElementById(`lvl-${key}`);
-            if(costEl) costEl.innerText = `$${Math.floor(item.baseCost * Math.pow(1.5, item.level))}`;
-            if(lvlEl) lvlEl.innerText = `Lv${item.level}`;
-        }
-    } else { shopModal.style.display = 'none'; }
-};
-window.buyItem = function(type) {
-    if(type === 'shield') {
-        if(gold >= 5000) { gold -= 5000; updateHud(); shieldActive = true; setTimeout(() => shieldActive = false, 10000); toggleShop(); } return;
-    }
-    if(type === 'emp') {
-        if(gold >= 5000) { 
-            gold -= 5000; updateHud(); 
-            score += enemies.length * 100; enemies = []; 
-            showGameMsg("EMP ACTIVATED!", canvas.width/2, canvas.height/2, '#ff2a2a');
-            toggleShop(); 
-        } return;
-    }
-
-    let item = shopItems[type], cost = Math.floor(item.baseCost * Math.pow(1.5, item.level));
-    if (gold >= cost) { 
-        gold -= cost; updateHud(); item.level++;
-        if(type === 'damage') stats.damage += 10;
-        if(type === 'blast') stats.blastRadius += 15;
-        if(type === 'drone') turrets.push(new Turret(turrets.length));
-        if(type === 'money') stats.goldMultiplier += 0.5; // 🌟
-        if(type === 'laser') lasers.push(new Laser());
-        if(type === 'lightning') {}
-        if(type === 'missile') {} 
-        if(type === 'regen') stats.regenRate += 1;
-        if(type === 'crit') stats.critChance += 0.05;
-        
-        let costEl = document.getElementById(`cost-${type}`);
-        let lvlEl = document.getElementById(`lvl-${type}`);
-        if(costEl) costEl.innerText = `$${Math.floor(item.baseCost * Math.pow(1.5, item.level))}`;
-        if(lvlEl) lvlEl.innerText = `Lv${item.level}`;
-    }
-};
-function showGameMsg(text, x, y, color) {
-    const msg = document.createElement('div'); msg.className = 'game-msg'; msg.innerText = text; msg.style.left = x + 'px'; msg.style.top = y + 'px'; msg.style.color = color; document.body.appendChild(msg); setTimeout(() => msg.remove(), 1000);
-}
-canvas.addEventListener('mousedown', (e) => handleInput(e.clientX, e.clientY));
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); for (let i = 0; i < e.touches.length; i++) { handleInput(e.touches[i].clientX, e.touches[i].clientY); } }, {passive: false});
-function initGame() { gameModal.style.display = 'flex'; body.classList.add('game-active'); }
-function startGame() {
-    gameModal.style.display = 'none'; canvas.style.display = 'block'; shopBtn.style.display = 'block'; integrityUI.style.display = 'block'; startBtn.style.display = 'none'; stopBtn.style.display = 'block'; scoreHud.style.display = 'block';
+// 🌟 V22.0 更新：戰力條逆轉算法 + 棒球圖示
+function renderRow(container, player, rank) {
+    const tr = document.createElement('tr'); 
+    tr.style.animation = `fadeIn 0.5s ease forwards`;
     
-    gameRunning = true; gamePaused = false; 
-    score = 0; 
-    gold = isMobile ? 0 : 3000; 
-    updateHud();
+    let displayRank = `#${rank}`;
+    let displayScoreText = `PR: ${player.score}`;
     
-    maxHp = 100; currentHp = 100; hpBar.style.width = '100%';
-    stats = { damage: 20, blastRadius: 50, regenRate: 0, critChance: 0, goldMultiplier: 1.0 }; 
-    if(isMobile) stats.blastRadius = 100;
+    // --- 1. 計算能量條長度 (逆轉邏輯) ---
+    // 假設最爛的分數大約是 60000，我們以此為基準
+    const MAX_REFERENCE_SCORE = 60000; 
+    let rawScore = parseInt(player.score);
+    if (isNaN(rawScore)) rawScore = MAX_REFERENCE_SCORE; // 防止非數字出錯
+
+    // 公式：分數越低，百分比越高。限制最少顯示 5% 以免完全看不到
+    let percent = Math.max(5, (1 - (rawScore / MAX_REFERENCE_SCORE)) * 100);
     
-    enemies = []; turrets = []; bullets = []; missiles = []; lasers = []; particles = []; lightnings = [];
-    for(let key in shopItems) shopItems[key].level = 0;
+    // --- 2. 動態顏色判定 ---
+    // 強者(>80%)用金色，中等用青色，弱者用紅色
+    let barColor = 'linear-gradient(90deg, #0066ff, #00f3ff)'; // 預設青色
+    if (percent > 80) barColor = 'linear-gradient(90deg, #ffaa00, #ffd700)'; // 金色
+    else if (percent < 30) barColor = 'linear-gradient(90deg, #880000, #ff2a2a)'; // 紅色
+
+    // --- 3. 處理特殊身份與圖示 ---
+    let icon = '⚾'; // 預設棒球
     
-    spawnInterval = setInterval(spawnLogic, 1000); 
-    autoWeaponInterval = setInterval(autoWeaponLogic, 1000);
-    gameLoop();
+    if (player.isLeader) { 
+        tr.classList.add('row-leader'); 
+        displayRank = '#1'; 
+        displayScoreText = '👑 大陰團長'; // 團長不顯示 PR，顯示頭銜
+        icon = '🏆'; // 團長是獎盃
+        percent = 100; // 團長永遠滿條
+        barColor = 'linear-gradient(90deg, #ffaa00, #ffd700)';
+    } 
+    else if (player.isNPC) { 
+        tr.classList.add('row-npc'); 
+        displayScoreText = '⚡ 強力NPC'; 
+        icon = '🤖'; // NPC 是機器人
+        percent = 95; // NPC 也很強
+    } 
+    else {
+        // 一般玩家特殊標籤
+        let tagsHtml = '';
+        if (player.isDemoted) { 
+            tr.classList.add('row-demoted'); 
+            tagsHtml += `<span class="demoted-tag">自願降團</span>`;
+            icon = '📉'; // 降團圖示
+        }
+        if (player.isNew) {
+            tagsHtml += `<span class="new-tag">新血</span>`;
+            icon = '🌱'; // 新血圖示
+        }
+        displayScoreText += tagsHtml;
+    }
+
+    // --- 4. 生成 HTML ---
+    tr.innerHTML = `
+        <td class="rank">${displayRank}</td>
+        <td class="hacker-text name" data-value="${player.name}">
+            <span class="baseball-icon">${icon}</span>${player.name}
+        </td>
+        <td class="score">
+            <div class="power-bar-wrapper">
+                <div style="margin-bottom:2px;">${displayScoreText}</div>
+                <div class="power-bar-container">
+                    <div class="power-bar-fill" style="width: ${percent}%; background: ${barColor};"></div>
+                </div>
+            </div>
+        </td>
+    `;
+    
+    const nameCell = tr.querySelector('.hacker-text');
+    if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
+    container.appendChild(tr);
 }
-function stopGame() {
-    gameRunning = false; cancelAnimationFrame(animationFrameId); clearInterval(spawnInterval); clearInterval(autoWeaponInterval);
-    canvas.style.display = 'none'; shopModal.style.display = 'none'; shopBtn.style.display = 'none'; integrityUI.style.display = 'none'; gameModal.style.display = 'none';
-    startBtn.style.display = 'block'; stopBtn.style.display = 'none'; scoreHud.style.display = 'none';
-    body.classList.remove('game-active');
-}
-if(startBtn) startBtn.addEventListener('click', initGame);
-if(modalStartBtn) modalStartBtn.addEventListener('click', startGame);
-if(stopBtn) stopBtn.addEventListener('click', stopGame);
 loadRankings();
