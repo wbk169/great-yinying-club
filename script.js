@@ -114,45 +114,38 @@ function updateSysMonitor() {
 }
 setInterval(updateSysMonitor, 1000);
 
-// 🌟 V31.0 修正版：開場動畫
+// 🌟 V33.0 開場動畫 (極速版)
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     const stamp = document.querySelector('.access-stamp');
     
-    if (!textElement || !bootScreen) return;
-    
-    document.body.classList.add('locked');
+    // 保險：強制移除殘留的十字線
+    document.querySelectorAll('.crosshair-line').forEach(el => el.remove());
 
-    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", "SYSTEM ONLINE."];
+    if (!textElement || !bootScreen) return;
+
+    const logs = ["INITIALIZING...", "LOADING KERNEL...", "CONNECTING DB...", "VERIFYING CREDENTIALS...", "ACCESS GRANTED."];
     let lineIndex = 0;
     
     function typeLine() {
         if (lineIndex < logs.length) {
-            const line = document.createElement('div');
-            line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line);
-            lineIndex++;
-            setTimeout(typeLine, Math.random() * 80 + 30); // 稍微放慢打字速度
+            const line = document.createElement('div'); line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line); lineIndex++; setTimeout(typeLine, 80); // 打字速度
         } else {
-            // 1. 打字結束
             setTimeout(() => {
                 textElement.style.opacity = 0; 
                 if(stamp) stamp.classList.add('stamp-visible');
                 
-                // 2. 印章顯示 1.5 秒
                 setTimeout(() => {
-                    if(stamp) {
-                        stamp.classList.remove('stamp-visible');
-                        stamp.classList.add('fade-out');
-                    }
+                    if(stamp) { stamp.classList.remove('stamp-visible'); stamp.classList.add('fade-out'); }
 
-                    // 🌟 3. 印章消失後 -> 藍線亮起 -> 閘門打開
+                    // 🌟 修改這裡：從 600ms 縮短為 100ms
                     setTimeout(() => {
                         // 亮起藍線
                         document.body.classList.add('line-active');
                         
-                        // 0.3秒後打開閘門
+                        // 0.3秒後打開閘門 (保持這個節奏，因為要有亮線的瞬間)
                         setTimeout(() => {
                             document.body.classList.add('loaded'); 
                             document.body.classList.remove('locked'); 
@@ -163,12 +156,21 @@ function runBootSequence() {
                             }, 1000);
                         }, 300);
 
-                    }, 600); // 等印章淡出
+                    }, 100); // ⚡ 這裡縮短了！印章一淡出馬上接藍線
                 }, 1500); 
-            }, 500);
+            }, 300);
         }
     }
     typeLine();
+    
+    setTimeout(() => {
+        if(document.getElementById('boot-screen')) {
+            console.log("Force clearing boot screen...");
+            document.getElementById('boot-screen').style.display = 'none';
+            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+            document.body.classList.remove('locked');
+        }
+    }, 4000);
 }
 
 function initCursor() {
@@ -262,8 +264,7 @@ async function loadRankings() {
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     } catch (error) { 
         console.error('讀取數據失敗:', error); 
-        const bootScreen = document.getElementById('boot-screen');
-        if(bootScreen) bootScreen.style.display = 'none'; 
+        if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; 
     }
 }
 
