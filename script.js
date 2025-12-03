@@ -1,18 +1,6 @@
-// ==========================================
-// 1. 設定與變數定義
-// ==========================================
+// 設定檔案路徑
 const CSV_FILE_PATH = 'rankings.csv';
-
-// NPC 設定
-const NPC_LIST = { 
-    1: [], 
-    2: [], 
-    3: ['未入團強力路人1', '未入團強力路人2'], 
-    4: ['未入團強力路人5'], 
-    5: [] 
-};
-
-// 團別設定
+const NPC_LIST = { 1: [], 2: [], 3: ['未入團強力路人1', '未入團強力路人2'], 4: ['未入團強力路人5'], 5: [] };
 const TEAM_CONFIG = {
     1: { name: '大陰帝國', id: 'team1-body', theme: 'tier-1-theme' },
     2: { name: '大陰帝國-稽查菊', id: 'team2-body', theme: 'tier-2-theme' },
@@ -21,26 +9,16 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
-// ==========================================
-// 2. 網站視覺特效 (純淨版)
-// ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
-
 function hackEffect(element) {
-    let iterations = 0;
-    const originalText = element.dataset.value || element.innerText; 
+    let iterations = 0; const originalText = element.dataset.value || element.innerText; 
     if(!element.dataset.value) element.dataset.value = originalText;
-
     const interval = setInterval(() => {
-        element.innerText = originalText.split("")
-            .map((letter, index) => {
-                if(index < iterations) return originalText[index];
-                return letters[Math.floor(Math.random() * 43)];
-            })
-            .join("");
-        
-        if(iterations >= originalText.length) clearInterval(interval);
-        iterations += 1 / 2; 
+        element.innerText = originalText.split("").map((letter, index) => {
+            if(index < iterations) return originalText[index];
+            return letters[Math.floor(Math.random() * 43)];
+        }).join("");
+        if(iterations >= originalText.length) clearInterval(interval); iterations += 1 / 2; 
     }, 30);
 }
 
@@ -64,7 +42,8 @@ function initParticles() {
         if(document.body.classList.contains('simple-mode')) return; 
         ctx.clearRect(0, 0, width, height);
         particles.forEach(p => {
-            p.x += p.vx; p.y += p.vy;
+            p.x += p.vx * particleSpeedMultiplier;
+            p.y += p.vy * particleSpeedMultiplier;
             if(p.x<0||p.x>width) p.vx*=-1; if(p.y<0||p.y>height) p.vy*=-1;
             const dx = mouse.x - p.x, dy = mouse.y - p.y, dist = Math.sqrt(dx*dx + dy*dy), forceRadius = 150;
             if (dist < forceRadius) { const angle = Math.atan2(dy, dx), force = (forceRadius - dist) / forceRadius, pushX = Math.cos(angle)*force*5, pushY = Math.sin(angle)*force*5; p.x-=pushX; p.y-=pushY; }
@@ -75,7 +54,6 @@ function initParticles() {
     resize(); animate();
 }
 
-// 搜尋功能
 function initSearch() {
     const input = document.getElementById('search-input');
     if (!input) return;
@@ -91,7 +69,6 @@ function initSearch() {
     });
 }
 
-// 點擊特效
 function createClickRipple(e) {
     if(document.body.classList.contains('simple-mode')) return;
     const ripple = document.createElement('div'); ripple.className = 'click-ripple';
@@ -113,6 +90,7 @@ function initMagnetic() {
     });
 }
 
+let particleSpeedMultiplier = 1;
 function initScrollEffects() {
     const progressBar = document.getElementById('progressBar');
     const titles = document.querySelectorAll('.team-title');
@@ -125,6 +103,7 @@ function initScrollEffects() {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
+        if (winScroll < 500) particleSpeedMultiplier = 3; else particleSpeedMultiplier = 1;
     });
 }
 
@@ -135,66 +114,53 @@ function updateSysMonitor() {
 }
 setInterval(updateSysMonitor, 1000);
 
-// 🌟 V30.0 開機動畫邏輯
+// 🌟 V32.0 強制修復版：開機動畫
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     const stamp = document.querySelector('.access-stamp');
     
-    // 安全檢查：如果找不到元素，直接結束函式，避免報錯
-    if (!textElement || !bootScreen) {
-        console.log("Boot screen elements not found.");
-        return;
-    }
-    
-    // 鎖定捲軸
-    document.body.classList.add('locked');
+    // 保險：強制移除殘留的十字線 (如果您之前沒刪乾淨)
+    document.querySelectorAll('.crosshair-line').forEach(el => el.remove());
 
-    const logs = [
-        "INITIALIZING SYSTEM...", 
-        "LOADING KERNEL MODULES...", 
-        "CONNECTING TO MLB DATABASE...", 
-        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
-        "SYSTEM ONLINE."
-    ];
+    if (!textElement || !bootScreen) return;
+
+    const logs = ["INITIALIZING...", "LOADING KERNEL...", "CONNECTING DB...", "VERIFYING CREDENTIALS...", "ACCESS GRANTED."];
     let lineIndex = 0;
     
     function typeLine() {
         if (lineIndex < logs.length) {
-            const line = document.createElement('div');
-            line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line);
-            lineIndex++;
-            setTimeout(typeLine, Math.random() * 60 + 20); // 加快打字速度
+            const line = document.createElement('div'); line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line); lineIndex++; setTimeout(typeLine, 100); // 加快打字
         } else {
-            // 1. 文字跑完，顯示印章
             setTimeout(() => {
                 textElement.style.opacity = 0; 
                 if(stamp) stamp.classList.add('stamp-visible');
                 
-                // 2. 印章停留
                 setTimeout(() => {
-                    if(stamp) {
-                        stamp.classList.remove('stamp-visible');
-                        stamp.classList.add('fade-out');
-                    }
-
-                    // 3. 閘門開啟
+                    if(stamp) { stamp.classList.remove('stamp-visible'); stamp.classList.add('fade-out'); }
                     setTimeout(() => {
                         document.body.classList.add('loaded'); 
-                        document.body.classList.remove('locked'); 
-                        
-                        // 4. 移除 DOM
+                        // 🌟 最終保險：直接刪除 DOM 元素
                         setTimeout(() => { 
-                            bootScreen.style.display = 'none'; 
-                            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+                            if(bootScreen) bootScreen.remove();
+                            document.querySelectorAll('.shutter-gate').forEach(el => el.remove());
                         }, 1000);
-                    }, 600); 
-                }, 1200); 
+                    }, 500); 
+                }, 1000); 
             }, 300);
         }
     }
     typeLine();
+    
+    // 🌟 超級保險：4秒後強制清場，防止卡住
+    setTimeout(() => {
+        if(document.getElementById('boot-screen')) {
+            console.log("Force clearing boot screen...");
+            document.getElementById('boot-screen').style.display = 'none';
+            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+        }
+    }, 4000);
 }
 
 function initCursor() {
@@ -212,27 +178,19 @@ function initCursor() {
 window.toggleSimpleMode = function() {
     document.body.classList.toggle('simple-mode');
     const btn = document.querySelector('.mode-switch');
-    if(document.body.classList.contains('simple-mode')) {
-        btn.innerText = "[NORMAL MODE]";
-    } else {
-        btn.innerText = "[SIMPLE MODE]";
-        initParticles(); 
-    }
+    if(document.body.classList.contains('simple-mode')) { btn.innerText = "[NORMAL MODE]"; } 
+    else { btn.innerText = "[SIMPLE MODE]"; initParticles(); }
 };
 
-// 🌟 核心：渲染邏輯
 let globalRowIndex = 0; 
-
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr'); 
     tr.style.animation = `fadeIn 0.5s ease forwards`;
-    tr.style.animationDelay = `${globalRowIndex * 0.03}s`; // 瀑布流延遲
+    tr.style.animationDelay = `${globalRowIndex * 0.03}s`;
     globalRowIndex++;
 
     let displayRank = `#${rank}`, displayScoreText = `PR: ${player.score}`;
     let rawScore = parseInt(player.score); if (isNaN(rawScore)) rawScore = 60000; 
-    
-    // 能量條邏輯
     let percent = 5, barClass = 'bar-normal';
     if (rawScore < 500) { percent = 98 + Math.random() * 2; barClass = 'bar-god'; } 
     else if (rawScore < 2000) { percent = 85 + (1 - rawScore/2000) * 10; barClass = 'bar-legend'; } 
@@ -250,29 +208,19 @@ function renderRow(container, player, rank) {
         displayScoreText += tagsHtml;
     }
 
-    tr.innerHTML = `
-        <td class="rank">${displayRank}</td>
-        <td class="hacker-text name" data-value="${player.name}">
-            <span class="baseball-icon">${icon}</span>${player.name}
-        </td>
-        <td class="score">
-            <div class="power-bar-wrapper">
-                <div style="margin-bottom:2px;">${displayScoreText}</div>
-                <div class="power-bar-container">
-                    <div class="power-bar-fill ${barClass}" style="width: ${percent}%;"></div>
-                </div>
-            </div>
-        </td>
-    `;
-    
+    tr.innerHTML = `<td class="rank">${displayRank}</td><td class="hacker-text name" data-value="${player.name}"><span class="baseball-icon">${icon}</span>${player.name}</td><td class="score"><div class="power-bar-wrapper"><div style="margin-bottom:2px;">${displayScoreText}</div><div class="power-bar-container"><div class="power-bar-fill ${barClass}" style="width: ${percent}%;"></div></div></div></td>`;
     const nameCell = tr.querySelector('.hacker-text');
     if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
     container.appendChild(tr);
 }
 
 async function loadRankings() {
-    // 🌟 啟動開場動畫
-    runBootSequence(); 
+    // 🌟 確保網頁載入後才執行
+    window.onload = () => {
+        runBootSequence();
+        initCursor(); updateSysMonitor(); initParticles(); initSearch();
+        setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
+    };
 
     try {
         const response = await fetch(CSV_FILE_PATH); const csvText = await response.text(); const rows = csvText.trim().split('\n').slice(1);
@@ -296,44 +244,19 @@ async function loadRankings() {
             const config = TEAM_CONFIG[teamNum]; const tableBody = document.getElementById(config.id); if (!tableBody) continue;
             const section = tableBody.closest('.team-section'); if (section) section.classList.add(config.theme); tableBody.innerHTML = ''; 
             let currentTeamCount = 0; const MAX_PER_TEAM = 20;  
-            
             if (teamNum === 1 && leaderData) { renderRow(tableBody, leaderData, globalRankCounter); currentTeamCount++; globalRankCounter++; }
-            
             const npcs = NPC_LIST[teamNum] || [];
             npcs.forEach(npcName => { if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) { renderRow(tableBody, { name: npcName, score: "強力NPC", isLeader: false, isNPC: true }, globalRankCounter); currentTeamCount++; globalRankCounter++; }});
-            
             if (teamNum === 5) { while (demotedList.length > 0) { renderRow(tableBody, demotedList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; } }
-            
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) { renderRow(tableBody, waitingList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
         }
-        initCursor(); updateSysMonitor(); initParticles(); initSearch();
-        setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
+        
         const today = new Date(); const dateEl = document.getElementById('update-date');
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     } catch (error) { 
         console.error('讀取數據失敗:', error); 
-        // 如果出錯，也要把黑幕關掉，不然使用者會以為網頁壞了
-        const bootScreen = document.getElementById('boot-screen');
-        if(bootScreen) bootScreen.style.display = 'none'; 
+        if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; 
     }
 }
 
-// 🌟 修正：確保網頁讀取完畢後才執行，避免卡死在黑畫面
-document.addEventListener("DOMContentLoaded", () => {
-    // 雙重保險：如果 5 秒後開場動畫還沒跑完(卡住)，強制解鎖畫面
-    setTimeout(() => {
-        const boot = document.getElementById('boot-screen');
-        const gates = document.querySelectorAll('.shutter-gate');
-        
-        // 如果黑幕還在，就強制關掉
-        if (boot && window.getComputedStyle(boot).display !== 'none') {
-            boot.style.display = 'none';
-            gates.forEach(g => g.style.display = 'none');
-            document.body.classList.remove('locked');
-            console.log("強制解鎖畫面");
-        }
-    }, 5000);
-
-    // 正常啟動主程式
-    loadRankings();
-});
+loadRankings();

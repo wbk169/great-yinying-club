@@ -306,3 +306,28 @@ body.loaded .shutter-bottom { transform: translateY(100%); }
 .access-stamp {
     z-index: 10002;
 }
+/* 🌟 V32.0 緊急修復：CSS 自動開啟保險 */
+@keyframes force-open-top {
+    0%, 70% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
+}
+@keyframes force-open-bottom {
+    0%, 70% { transform: translateY(0); }
+    100% { transform: translateY(100%); }
+}
+@keyframes force-hide-overlay {
+    0%, 80% { opacity: 1; z-index: 10000; }
+    100% { opacity: 0; z-index: -1; }
+}
+
+/* 將動畫綁定到閘門上，4秒後自動開門 */
+.shutter-top {
+    animation: force-open-top 4s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+.shutter-bottom {
+    animation: force-open-bottom 4s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+/* 時間到自動隱藏黑幕 */
+#boot-screen {
+    animation: force-hide-overlay 4.5s ease-out forwards;
+}
