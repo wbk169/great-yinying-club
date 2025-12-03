@@ -6,6 +6,7 @@
     --neon-gold: #ffd700;
     --neon-red: #ff2a2a;
     --neon-green: #00ff7f;
+    --neon-white: #ffffff; /* 新增白金 */
     --bg-dark: #050505;
     --panel-bg: rgba(10, 15, 20, 0.95);
     --border-color: rgba(0, 243, 255, 0.3);
@@ -28,10 +29,11 @@ body.game-active { overflow: hidden; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #000; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var(--neon-cyan), var(--neon-purple)); border-radius: 3px; }
+
 .scroll-progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 10001; background: rgba(255, 255, 255, 0.1); }
 .scroll-progress-bar { height: 100%; width: 0%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transition: width 0.1s; }
 
-/* 🌟 V23.1 背景升級：全息球場 (加上壘包) */
+/* 背景特效 */
 .bg-hexagons {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3;
     background-image: 
@@ -40,60 +42,29 @@ body.game-active { overflow: hidden; }
         repeating-linear-gradient(-60deg, transparent, transparent 29px, rgba(0, 243, 255, 0.02) 30px);
     background-size: 70px 122px;
 }
-
 .bg-baseball-field {
-    position: fixed; top: 50%; left: 50%; 
-    width: 60vh; height: 60vh; /* 稍微縮小一點以免超出手機 */
-    transform: translate(-50%, -50%);
-    z-index: -2; opacity: 0.2;
-    pointer-events: none;
+    position: fixed; top: 50%; left: 50%; width: 60vh; height: 60vh; transform: translate(-50%, -50%); z-index: -2; opacity: 0.2; pointer-events: none;
 }
-/* 內野菱形線 */
 .bg-baseball-field::before {
     content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    border: 2px solid var(--neon-cyan);
-    transform: rotate(45deg); 
-    box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 20px var(--neon-cyan);
-    animation: field-rotate 60s linear infinite;
+    border: 2px solid var(--neon-cyan); transform: rotate(45deg); 
+    box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 20px var(--neon-cyan); animation: field-rotate 60s linear infinite;
 }
-/* 🌟 新增：四個壘包 (Bases) */
 .bg-baseball-field::after {
     content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    /* 利用漸層在四個角落畫出方塊(壘包) */
-    background: 
-        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) top left,
-        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) top right,
-        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) bottom left,
-        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) bottom right;
-    background-size: 20px 20px;
-    background-repeat: no-repeat;
-    transform: rotate(45deg);
-    animation: field-rotate 60s linear infinite; /* 跟著線條一起轉 */
+    background: radial-gradient(square, var(--neon-purple) 5px, transparent 6px) top left, radial-gradient(square, var(--neon-purple) 5px, transparent 6px) top right, radial-gradient(square, var(--neon-purple) 5px, transparent 6px) bottom left, radial-gradient(square, var(--neon-purple) 5px, transparent 6px) bottom right;
+    background-size: 20px 20px; background-repeat: no-repeat; transform: rotate(45deg); animation: field-rotate 60s linear infinite;
 }
-
 @keyframes field-rotate { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
-
-.bg-fog {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; z-index: -2;
-    background: radial-gradient(circle at 50% 120%, rgba(0, 102, 255, 0.15), transparent 70%);
-    pointer-events: none;
-}
-
+.bg-fog { position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: radial-gradient(circle at 50% 120%, rgba(0, 102, 255, 0.15), transparent 70%); pointer-events: none; }
 .scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.3; }
 
-
-.sys-monitor { position: fixed; bottom: 10px; right: 10px; font-family: 'Consolas', monospace; font-size: 0.7em; color: var(--neon-cyan); text-align: right; z-index: 9997; pointer-events: none; line-height: 1.5; text-shadow: 0 0 5px var(--neon-cyan); border-right: 2px solid var(--neon-cyan); padding-right: 10px; }
-
-.hud-corner { position: fixed; width: 30px; height: 30px; border: 2px solid var(--neon-cyan); z-index: 9998; pointer-events: none; opacity: 0.8; }
-.hud-tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
-.hud-tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
-.hud-bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
-.hud-br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
-
+/* Header */
 header { padding: 80px 20px; text-align: center; border-bottom: 1px solid var(--border-color); background: linear-gradient(180deg, rgba(188, 19, 254, 0.1) 0%, transparent 100%); }
 h1 { font-size: 5em; margin: 0; letter-spacing: 5px; display: inline-block; background: linear-gradient(90deg, var(--neon-cyan), #fff, var(--neon-purple), var(--neon-cyan)); background-size: 300%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradient-flow 5s linear infinite; text-shadow: 0 0 30px rgba(188, 19, 254, 0.5); }
 @keyframes gradient-flow { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 header p { color: var(--neon-cyan); letter-spacing: 6px; margin-top: 20px; }
+
 main { max-width: 1300px; margin: 60px auto; padding: 0 30px; }
 h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 50px; white-space: normal; line-height: 1.3; }
 
@@ -117,7 +88,7 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 .ranking-table tbody tr:hover { background: rgba(0, 243, 255, 0.15) !important; transform: translateX(10px) !important; text-shadow: 2px 0 var(--neon-red), -2px 0 var(--neon-blue) !important; box-shadow: -4px 0 0 var(--neon-cyan) !important; z-index: 10; position: relative; }
 .ranking-table td { padding: 18px 20px; color: #eee; }
 
-/* 角色樣式 */
+/* 特殊行樣式 */
 .row-leader { background: linear-gradient(90deg, rgba(255, 215, 0, 0.15), transparent) !important; border-left: 4px solid var(--neon-gold); }
 .row-leader .rank, .row-leader .name, .row-leader .score { color: var(--neon-gold); font-weight: bold; text-shadow: 0 0 8px rgba(255,215,0,0.8); }
 .row-npc { border-left: 3px solid var(--neon-green); } .row-npc .name, .row-npc .score { color: var(--neon-green); font-weight: bold; text-shadow: 0 0 5px rgba(0,255,127,0.5); }
@@ -130,46 +101,41 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 .hacker-text { font-family: 'Consolas', monospace; cursor: crosshair; }
 .score { color: #aaa; font-size: 0.9em; }
 
-footer { border-top: 1px solid var(--border-color); background: #000; padding: 40px; text-align: center; color: #444; }
-
-/* 🌟 V23.1 棒球游標設定 */
-.cursor-dot { 
-    /* 移除背景色，改用 content */
-    width: auto; height: auto; background: none; 
-    position: fixed; z-index: 9999; pointer-events: none; 
-    transform: translate(-50%, -50%); opacity: 0;
-    font-size: 24px; /* 棒球大小 */
-}
-/* 透過 CSS 插入棒球 Emoji */
-.cursor-dot::after {
-    content: '⚾';
-    display: block;
-    /* 讓球會自轉，更帥氣 */
-    animation: ball-spin 2s linear infinite;
-}
-@keyframes ball-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-/* 🌟 好球帶方框 (取代原本的圓圈) */
-.cursor-outline { 
-    width: 50px; height: 60px; /* 長方形好球帶 */
-    border: 1px dashed var(--neon-cyan); /* 虛線 */
-    border-radius: 4px; 
-    position: fixed; z-index: 9999; pointer-events: none; 
-    transform: translate(-50%, -50%); 
-    transition: width 0.1s, height 0.1s, border-color 0.2s; 
-    opacity: 0; 
-}
-
-/* 能量條 (V22) */
+/* 🌟 V24.0 能量條：階級特效 */
 .power-bar-wrapper { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
-.power-bar-container { width: 120px; height: 6px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); margin-top: 4px; position: relative; overflow: hidden; clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); }
-.power-bar-fill { height: 100%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan)); width: 0%; box-shadow: 0 0 8px var(--neon-cyan); position: relative; transition: width 1s cubic-bezier(0.22, 0.61, 0.36, 1); }
-.power-bar-fill::after { content: ''; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-45deg) translateX(-150%); animation: shimmer 2.5s infinite; }
-@keyframes shimmer { 0% { transform: skewX(-45deg) translateX(-150%); } 100% { transform: skewX(-45deg) translateX(150%); } }
+.power-bar-container { width: 140px; height: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); margin-top: 4px; position: relative; overflow: hidden; clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); }
+.power-bar-fill { height: 100%; width: 0%; position: relative; transition: width 1s cubic-bezier(0.22, 0.61, 0.36, 1); }
+
+/* Tier God (PR < 500): 白金脈衝 */
+.bar-god { background: linear-gradient(90deg, #fff, #e0ffff, #fff); box-shadow: 0 0 15px #fff; animation: god-pulse 1.5s infinite; }
+@keyframes god-pulse { 0% { opacity: 0.8; } 50% { opacity: 1; box-shadow: 0 0 20px #fff; } 100% { opacity: 0.8; } }
+
+/* Tier Legend (PR < 2000): 黃金流動 */
+.bar-legend { background: linear-gradient(90deg, #ffd700, #ffaa00); box-shadow: 0 0 10px #ffd700; }
+.bar-legend::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(90deg, transparent, #fff, transparent); opacity: 0.5; transform: skewX(-45deg) translateX(-100%); animation: shimmer 2s infinite; }
+
+/* Tier Master (PR < 8000): 霓虹紫 */
+.bar-master { background: linear-gradient(90deg, #bc13fe, #8a2be2); box-shadow: 0 0 8px #bc13fe; }
+
+/* Tier Diamond (PR < 20000): 青色 */
+.bar-diamond { background: linear-gradient(90deg, #00f3ff, #0066ff); box-shadow: 0 0 5px #00f3ff; }
+
+/* Normal & Weak */
+.bar-normal { background: linear-gradient(90deg, #00ff7f, #00cc66); opacity: 0.8; }
+.bar-weak { background: linear-gradient(90deg, #ff2a2a, #880000); opacity: 0.6; }
+
 .baseball-icon { margin-right: 8px; font-size: 0.9em; vertical-align: middle; filter: drop-shadow(0 0 2px var(--neon-cyan)); }
+
+footer { border-top: 1px solid var(--border-color); background: #000; padding: 40px; text-align: center; color: #444; }
+.cursor-dot { width: auto; height: auto; background: none; position: fixed; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; font-size: 24px; }
+.cursor-dot::after { content: '⚾'; display: block; animation: ball-spin 2s linear infinite; }
+@keyframes ball-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.cursor-outline { width: 50px; height: 60px; border: 1px dashed var(--neon-cyan); background: linear-gradient(to right, var(--neon-cyan) 2px, transparent 2px) 0 0, linear-gradient(to bottom, var(--neon-cyan) 2px, transparent 2px) 0 0, linear-gradient(to left, var(--neon-cyan) 2px, transparent 2px) 100% 0, linear-gradient(to bottom, var(--neon-cyan) 2px, transparent 2px) 100% 0, linear-gradient(to right, var(--neon-cyan) 2px, transparent 2px) 0 100%, linear-gradient(to top, var(--neon-cyan) 2px, transparent 2px) 0 100%, linear-gradient(to left, var(--neon-cyan) 2px, transparent 2px) 100% 100%, linear-gradient(to top, var(--neon-cyan) 2px, transparent 2px) 100% 100%; background-repeat: no-repeat; background-size: 10px 10px; position: fixed; border-radius: 4px; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, border-color 0.2s; opacity: 0; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
 
 #boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: flex; align-items: center; padding: 20px; }
 #terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; }
+.blink-cursor::after { content: '█'; animation: blink 0.8s infinite; margin-left: 5px; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 @media (max-width: 768px) {
     .hud-corner, .cursor-dot, .cursor-outline, .sys-monitor, .crosshair-line { display: none; } 
@@ -177,7 +143,7 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
     h2 { text-align: left; font-size: 1.3em; }
     .team-section { padding: 20px; opacity: 1; transform: none; overflow-x: auto; }
     .ranking-table td { padding: 12px 10px; font-size: 0.9em; }
-    .power-bar-container { width: 70px; }
+    .power-bar-container { width: 80px; }
     .team-title { background: none !important; -webkit-text-fill-color: #fff !important; color: #fff !important; text-shadow: none !important; display: block !important; font-size: 1.5em !important; margin-bottom: 15px !important; }
     .tier-1-theme .team-title { color: var(--neon-gold) !important; -webkit-text-fill-color: var(--neon-gold) !important; }
     .tier-2-theme .team-title { color: var(--neon-cyan) !important; -webkit-text-fill-color: var(--neon-cyan) !important; }
