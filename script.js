@@ -114,53 +114,61 @@ function updateSysMonitor() {
 }
 setInterval(updateSysMonitor, 1000);
 
-// 🌟 V32.0 強制修復版：開機動畫
+// 🌟 V31.0 修正版：開場動畫
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     const stamp = document.querySelector('.access-stamp');
     
-    // 保險：強制移除殘留的十字線 (如果您之前沒刪乾淨)
-    document.querySelectorAll('.crosshair-line').forEach(el => el.remove());
-
     if (!textElement || !bootScreen) return;
+    
+    document.body.classList.add('locked');
 
-    const logs = ["INITIALIZING...", "LOADING KERNEL...", "CONNECTING DB...", "VERIFYING CREDENTIALS...", "ACCESS GRANTED."];
+    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", "SYSTEM ONLINE."];
     let lineIndex = 0;
     
     function typeLine() {
         if (lineIndex < logs.length) {
-            const line = document.createElement('div'); line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line); lineIndex++; setTimeout(typeLine, 100); // 加快打字
+            const line = document.createElement('div');
+            line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line);
+            lineIndex++;
+            setTimeout(typeLine, Math.random() * 80 + 30); // 稍微放慢打字速度
         } else {
+            // 1. 打字結束
             setTimeout(() => {
                 textElement.style.opacity = 0; 
                 if(stamp) stamp.classList.add('stamp-visible');
                 
+                // 2. 印章顯示 1.5 秒
                 setTimeout(() => {
-                    if(stamp) { stamp.classList.remove('stamp-visible'); stamp.classList.add('fade-out'); }
+                    if(stamp) {
+                        stamp.classList.remove('stamp-visible');
+                        stamp.classList.add('fade-out');
+                    }
+
+                    // 🌟 3. 印章消失後 -> 藍線亮起 -> 閘門打開
                     setTimeout(() => {
-                        document.body.classList.add('loaded'); 
-                        // 🌟 最終保險：直接刪除 DOM 元素
-                        setTimeout(() => { 
-                            if(bootScreen) bootScreen.remove();
-                            document.querySelectorAll('.shutter-gate').forEach(el => el.remove());
-                        }, 1000);
-                    }, 500); 
-                }, 1000); 
-            }, 300);
+                        // 亮起藍線
+                        document.body.classList.add('line-active');
+                        
+                        // 0.3秒後打開閘門
+                        setTimeout(() => {
+                            document.body.classList.add('loaded'); 
+                            document.body.classList.remove('locked'); 
+                            
+                            setTimeout(() => { 
+                                bootScreen.style.display = 'none'; 
+                                document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+                            }, 1000);
+                        }, 300);
+
+                    }, 600); // 等印章淡出
+                }, 1500); 
+            }, 500);
         }
     }
     typeLine();
-    
-    // 🌟 超級保險：4秒後強制清場，防止卡住
-    setTimeout(() => {
-        if(document.getElementById('boot-screen')) {
-            console.log("Force clearing boot screen...");
-            document.getElementById('boot-screen').style.display = 'none';
-            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
-        }
-    }, 4000);
 }
 
 function initCursor() {
@@ -215,7 +223,6 @@ function renderRow(container, player, rank) {
 }
 
 async function loadRankings() {
-    // 🌟 確保網頁載入後才執行
     window.onload = () => {
         runBootSequence();
         initCursor(); updateSysMonitor(); initParticles(); initSearch();
@@ -255,7 +262,8 @@ async function loadRankings() {
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     } catch (error) { 
         console.error('讀取數據失敗:', error); 
-        if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; 
+        const bootScreen = document.getElementById('boot-screen');
+        if(bootScreen) bootScreen.style.display = 'none'; 
     }
 }
 

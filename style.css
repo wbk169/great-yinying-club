@@ -1,5 +1,5 @@
 /* =========================================
-   🌟 V30.0 大陰帝國俱樂部 - 戰術閘門版
+   🌟 V31.0 大陰帝國俱樂部 - 完美開場版
    ========================================= */
 
 /* --- 全局變數 --- */
@@ -10,6 +10,7 @@
     --neon-gold: #ffd700;
     --neon-red: #ff2a2a;
     --neon-green: #00ff7f;
+    --neon-white: #ffffff;
     --bg-dark: #050505;
     --panel-bg: rgba(10, 15, 20, 0.95);
     --border-color: rgba(0, 243, 255, 0.3);
@@ -25,7 +26,8 @@ body {
     touch-action: manipulation;
     user-select: none; -webkit-user-select: none;
 }
-body.locked { overflow: hidden; } /* 開場時鎖定捲軸 */
+body.game-active { overflow: hidden; } 
+@media (pointer: fine) { body:not(.simple-mode) { cursor: none; } }
 
 /* 簡化模式 */
 body.simple-mode .bg-particles,
@@ -37,8 +39,6 @@ body.simple-mode .click-ripple { display: none !important; }
 body.simple-mode { cursor: auto; } 
 body.simple-mode .ranking-table tbody tr:hover { text-shadow: none !important; transform: translateX(5px) !important; }
 
-@media (pointer: fine) { body:not(.simple-mode) { cursor: none; } }
-
 /* 捲軸 */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #000; }
@@ -46,7 +46,7 @@ body.simple-mode .ranking-table tbody tr:hover { text-shadow: none !important; t
 .scroll-progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 10001; background: rgba(255, 255, 255, 0.1); }
 .scroll-progress-bar { height: 100%; width: 0%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transition: width 0.1s; }
 
-/* 背景特效 */
+/* 背景特效層 */
 #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.6; pointer-events: none; transition: opacity 0.5s; }
 .bg-hexagons {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3;
@@ -125,7 +125,6 @@ header {
 
 main { max-width: 1300px; margin: 40px auto; padding: 0 30px; }
 
-/* 戰術搜尋框 */
 .search-container { position: relative; max-width: 600px; margin: 0 auto 40px auto; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-color); padding: 10px 20px; display: flex; align-items: center; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
 .search-icon { font-size: 1.2em; margin-right: 10px; filter: grayscale(1); }
 #search-input { background: transparent; border: none; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 1.2em; width: 100%; outline: none; letter-spacing: 1px; }
@@ -146,7 +145,6 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 }
 .team-section.reveal-active { opacity: 1; transform: translateY(0); }
 
-/* 🌟 V30.0 卡片流光邊框 (Snake Border) */
 .team-section::before {
     content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
     background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
@@ -222,48 +220,29 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 @keyframes ball-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cursor-outline { width: 50px; height: 60px; border: 1px dashed var(--neon-cyan); background: linear-gradient(to right, var(--neon-cyan) 2px, transparent 2px) 0 0, linear-gradient(to bottom, var(--neon-cyan) 2px, transparent 2px) 0 0, linear-gradient(to left, var(--neon-cyan) 2px, transparent 2px) 100% 0, linear-gradient(to bottom, var(--neon-cyan) 2px, transparent 2px) 100% 0, linear-gradient(to right, var(--neon-cyan) 2px, transparent 2px) 0 100%, linear-gradient(to top, var(--neon-cyan) 2px, transparent 2px) 0 100%, linear-gradient(to left, var(--neon-cyan) 2px, transparent 2px) 100% 100%, linear-gradient(to top, var(--neon-cyan) 2px, transparent 2px) 100% 100%; background-repeat: no-repeat; background-size: 10px 10px; position: fixed; border-radius: 4px; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, border-color 0.2s; opacity: 0; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
 
-/* 🌟 V30.0 戰術閘門特效 */
-/* 修正：讓文字層 (boot-screen) 比閘門 (shutter-gate) 更高 */
-#boot-screen { 
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-    background: transparent; 
-    z-index: 10005; /* 🌟 關鍵修改：原 10000 -> 改為 10005 */
-    display: flex; align-items: center; justify-content: center; 
-    pointer-events: none; 
-}
+/* 🌟 V31.0 修正：預設隱藏藍線 (透明)，直到 loaded 才顯示 */
 .shutter-gate {
     position: fixed; left: 0; width: 100%; height: 50vh;
-    background: #050505; z-index: 10000;
+    background: #050505; z-index: 10001;
     transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
 }
-.shutter-top { top: 0; border-bottom: 2px solid var(--neon-cyan); transform-origin: top; }
-.shutter-bottom { bottom: 0; border-top: 2px solid var(--neon-cyan); transform-origin: bottom; }
-/* 閘門開啟狀態 */
+/* 預設透明邊框 */
+.shutter-top { top: 0; border-bottom: 2px solid transparent; transform-origin: top; }
+.shutter-bottom { bottom: 0; border-top: 2px solid transparent; transform-origin: bottom; }
+
+/* 開啟瞬間變色 */
+body.line-active .shutter-top { border-bottom-color: var(--neon-cyan); }
+body.line-active .shutter-bottom { border-top-color: var(--neon-cyan); }
+
+/* 開啟後位移 */
 body.loaded .shutter-top { transform: translateY(-100%); }
 body.loaded .shutter-bottom { transform: translateY(100%); }
 
-/* 文字層 */
-#terminal-text { 
-    z-index: 10002; /* 在閘門之上 */
-    width: 100%; max-width: 600px; font-family: 'Consolas', monospace; 
-    color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; 
-    padding: 20px;
-    transition: opacity 0.5s;
-}
-/* 權限確認印章 */
-.access-stamp {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-    border: 5px solid var(--neon-green); color: var(--neon-green);
-    font-size: 4em; font-weight: bold; padding: 20px 40px;
-    z-index: 10003; opacity: 0;
-    text-shadow: 0 0 20px var(--neon-green); box-shadow: 0 0 30px var(--neon-green), inset 0 0 30px var(--neon-green);
-    transform: translate(-50%, -50%) rotate(-10deg) scale(3); /* 初始放大 */
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.access-stamp.stamp-visible {
-    opacity: 1; transform: translate(-50%, -50%) rotate(-5deg) scale(1);
-}
-
+#boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: transparent; z-index: 10005; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+#terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; padding: 20px; transition: opacity 0.5s; }
+.access-stamp { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); border: 5px solid var(--neon-green); color: var(--neon-green); font-size: 4em; font-weight: bold; padding: 20px 40px; z-index: 10003; opacity: 0; text-shadow: 0 0 20px var(--neon-green); box-shadow: 0 0 30px var(--neon-green), inset 0 0 30px var(--neon-green); transform: translate(-50%, -50%) rotate(-10deg) scale(3); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.access-stamp.stamp-visible { opacity: 1; transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
+.access-stamp.fade-out { opacity: 0; transform: translate(-50%, -50%) scale(1.2); transition: all 0.5s ease-out; }
 .blink-cursor::after { content: '█'; animation: blink 0.8s infinite; margin-left: 5px; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
@@ -290,44 +269,4 @@ body.loaded .shutter-bottom { transform: translateY(100%); }
     * { animation: none !important; transition: none !important; }
     .bg-hexagons { opacity: 1; }
     .team-section { opacity: 1; transform: none; }
-}
-/* 🌟 V30.1 修正：印章淡出動畫 */
-.access-stamp.fade-out {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1.2); /* 淡出時稍微放大 */
-    transition: all 0.5s ease-out;
-}
-
-/* 確保閘門線條在最上層，但在印章之下 */
-.shutter-gate {
-    z-index: 10001; /* 原本是 10000，稍微提高確保蓋住背景 */
-}
-/* 印章要在閘門之上 */
-.access-stamp {
-    z-index: 10002;
-}
-/* 🌟 V32.0 緊急修復：CSS 自動開啟保險 */
-@keyframes force-open-top {
-    0%, 70% { transform: translateY(0); }
-    100% { transform: translateY(-100%); }
-}
-@keyframes force-open-bottom {
-    0%, 70% { transform: translateY(0); }
-    100% { transform: translateY(100%); }
-}
-@keyframes force-hide-overlay {
-    0%, 80% { opacity: 1; z-index: 10000; }
-    100% { opacity: 0; z-index: -1; }
-}
-
-/* 將動畫綁定到閘門上，4秒後自動開門 */
-.shutter-top {
-    animation: force-open-top 4s cubic-bezier(0.7, 0, 0.3, 1) forwards;
-}
-.shutter-bottom {
-    animation: force-open-bottom 4s cubic-bezier(0.7, 0, 0.3, 1) forwards;
-}
-/* 時間到自動隱藏黑幕 */
-#boot-screen {
-    animation: force-hide-overlay 4.5s ease-out forwards;
 }
