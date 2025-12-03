@@ -22,7 +22,125 @@ function hackEffect(element) {
     }, 30);
 }
 
-// 🌟 V29.0 升級：粒子速度可變
+function initMagnetic() {
+    if (window.innerWidth < 768) return; 
+    const magnets = document.querySelectorAll('.team-title');
+    magnets.forEach(magnet => {
+        magnet.classList.add('magnetic-target'); 
+        magnet.addEventListener('mousemove', (e) => {
+            const rect = magnet.getBoundingClientRect();
+            magnet.style.transform = `translate(${(e.clientX - rect.left - rect.width / 2) * 0.05}px, ${(e.clientY - rect.top - rect.height / 2) * 0.1}px)`;
+        });
+        magnet.addEventListener('mouseleave', () => { magnet.style.transform = 'translate(0px, 0px)'; });
+    });
+}
+
+function initScrollEffects() {
+    const progressBar = document.getElementById('progressBar');
+    const titles = document.querySelectorAll('.team-title');
+    const sections = document.querySelectorAll('.team-section');
+    
+    const titleObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                hackEffect(entry.target); 
+                titleObserver.unobserve(entry.target); 
+            }
+        });
+    }, { threshold: 0.5 });
+    titles.forEach(title => titleObserver.observe(title));
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('reveal-active');
+                sectionObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    sections.forEach(section => sectionObserver.observe(section));
+
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
+    });
+}
+
+function updateSysMonitor() {
+    const monitor = document.getElementById('sysMonitor'); if (!monitor) return;
+    const now = new Date();
+    monitor.innerHTML = `SYS_TIME: ${now.toLocaleTimeString('en-US', { hour12: false })}<br>FPS: 60<br>PING: ${Math.floor(Math.random()*10+5)}ms<br>STATUS: STABLE`;
+}
+setInterval(updateSysMonitor, 1000);
+
+// 🌟 V30.0 獨立出來的開機動畫函式
+function runBootSequence() {
+    const textElement = document.getElementById('terminal-text');
+    const bootScreen = document.getElementById('boot-screen');
+    const stamp = document.querySelector('.access-stamp');
+    
+    if (!textElement || !bootScreen) return;
+    
+    // 鎖定
+    document.body.classList.add('locked');
+
+    const logs = [
+        "INITIALIZING SYSTEM...", 
+        "LOADING KERNEL MODULES...", 
+        "CONNECTING TO MLB DATABASE...", 
+        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
+        "SYSTEM ONLINE."
+    ];
+    let lineIndex = 0;
+    
+    function typeLine() {
+        if (lineIndex < logs.length) {
+            const line = document.createElement('div');
+            line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line);
+            lineIndex++;
+            setTimeout(typeLine, Math.random() * 80 + 30); 
+        } else {
+            setTimeout(() => {
+                textElement.style.opacity = 0; 
+                if(stamp) stamp.classList.add('stamp-visible');
+                
+                setTimeout(() => {
+                    if(stamp) {
+                        stamp.classList.remove('stamp-visible');
+                        stamp.classList.add('fade-out');
+                    }
+
+                    setTimeout(() => {
+                        document.body.classList.add('loaded'); 
+                        document.body.classList.remove('locked'); 
+                        
+                        setTimeout(() => { 
+                            bootScreen.style.display = 'none'; 
+                            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+                        }, 1000);
+                    }, 600); 
+                }, 1500); 
+            }, 500);
+        }
+    }
+    typeLine();
+}
+
+function initCursor() {
+    if (window.innerWidth < 768) return;
+    const cursorDot = document.querySelector('[data-cursor-dot]');
+    const cursorOutline = document.querySelector('[data-cursor-outline]');
+    if(!cursorDot || !cursorOutline) return;
+    cursorDot.style.opacity = 0; cursorOutline.style.opacity = 0;
+    window.addEventListener("mousemove", function (e) {
+        if(cursorDot) { cursorDot.style.opacity = 1; cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`; }
+        if(cursorOutline) { cursorOutline.style.opacity = 1; cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" }); }
+    });
+}
+
+// V25.0 粒子系統
 let particleSpeedMultiplier = 1;
 function initParticles() {
     const canvas = document.getElementById('particle-canvas');
@@ -43,7 +161,6 @@ function initParticles() {
         if(document.body.classList.contains('simple-mode')) return; 
         ctx.clearRect(0, 0, width, height);
         particles.forEach(p => {
-            // 🌟 粒子速度隨捲動位置變化
             p.x += p.vx * particleSpeedMultiplier;
             p.y += p.vy * particleSpeedMultiplier;
             if(p.x<0||p.x>width) p.vx*=-1; if(p.y<0||p.y>height) p.vy*=-1;
@@ -79,127 +196,6 @@ function createClickRipple(e) {
 }
 window.addEventListener('mousedown', createClickRipple);
 
-function initMagnetic() {
-    if (window.innerWidth < 768) return; 
-    const magnets = document.querySelectorAll('.team-title');
-    magnets.forEach(magnet => {
-        magnet.classList.add('magnetic-target'); 
-        magnet.addEventListener('mousemove', (e) => {
-            const rect = magnet.getBoundingClientRect();
-            magnet.style.transform = `translate(${(e.clientX - rect.left - rect.width / 2) * 0.05}px, ${(e.clientY - rect.top - rect.height / 2) * 0.1}px)`;
-        });
-        magnet.addEventListener('mouseleave', () => { magnet.style.transform = 'translate(0px, 0px)'; });
-    });
-}
-
-// 🌟 V29.0 戰術導航與滾動特效
-function initScrollEffects() {
-    const progressBar = document.getElementById('progressBar');
-    const titles = document.querySelectorAll('.team-title');
-    const sections = document.querySelectorAll('.team-section');
-    
-    // 標題解碼
-    const titleObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { hackEffect(entry.target); titleObserver.unobserve(entry.target); } }); }, { threshold: 0.5 });
-    titles.forEach(title => titleObserver.observe(title));
-
-    // 區塊進場
-    const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('reveal-active'); sectionObserver.unobserve(entry.target); } }); }, { threshold: 0.1 });
-    sections.forEach(section => sectionObserver.observe(section));
-
-    // 🌟 導航點擊事件 (閃光特效)
-    document.querySelectorAll('.nav-item').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetId = link.getAttribute('href').substring(1);
-            const section = document.getElementById(targetId);
-            if(section) {
-                // 平滑捲動
-                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // 閃光特效
-                section.classList.add('flash-active');
-                setTimeout(() => section.classList.remove('flash-active'), 800);
-            }
-        });
-    });
-
-    // 滾動監聽
-    window.addEventListener('scroll', () => {
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
-        
-        // 🌟 粒子加速：接近頂部時加速
-        if (winScroll < 500) particleSpeedMultiplier = 3;
-        else particleSpeedMultiplier = 1;
-    });
-}
-
-function updateSysMonitor() {
-    const monitor = document.getElementById('sysMonitor'); if (!monitor) return;
-    const now = new Date();
-    monitor.innerHTML = `SYS_TIME: ${now.toLocaleTimeString('en-US', { hour12: false })}<br>FPS: 60<br>PING: ${Math.floor(Math.random()*10+5)}ms<br>STATUS: STABLE`;
-}
-setInterval(updateSysMonitor, 1000);
-function runBootSequence() {
-    const textElement = document.getElementById('terminal-text');
-    const bootScreen = document.getElementById('boot-screen');
-    const stamp = document.querySelector('.access-stamp');
-    
-    if (!textElement || !bootScreen) return;
-    
-    // 鎖定捲軸
-    document.body.classList.add('locked');
-
-    const logs = [
-        "INITIALIZING SYSTEM...", 
-        "LOADING KERNEL MODULES...", 
-        "CONNECTING TO MLB DATABASE...", 
-        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
-        "SYSTEM ONLINE."
-    ];
-    let lineIndex = 0;
-    
-    function typeLine() {
-        if (lineIndex < logs.length) {
-            const line = document.createElement('div');
-            line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line);
-            lineIndex++;
-            setTimeout(typeLine, Math.random() * 80 + 30); // 打字速度
-        } else {
-            // 🌟 文字跑完，蓋章！
-            setTimeout(() => {
-                textElement.style.opacity = 0; // 文字淡出
-                if(stamp) stamp.classList.add('stamp-visible');
-                
-                // 🌟 閘門開啟
-                setTimeout(() => {
-                    document.body.classList.add('loaded'); // CSS 觸發閘門滑開
-                    document.body.classList.remove('locked'); // 解鎖捲軸
-                    
-                    // 移除 DOM
-                    setTimeout(() => { 
-                        bootScreen.style.display = 'none'; 
-                        document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
-                    }, 1000);
-                }, 800);
-            }, 500);
-        }
-    }
-    typeLine();
-}
-function initCursor() {
-    if (window.innerWidth < 768) return;
-    const cursorDot = document.querySelector('[data-cursor-dot]');
-    const cursorOutline = document.querySelector('[data-cursor-outline]');
-    if(!cursorDot || !cursorOutline) return;
-    cursorDot.style.opacity = 0; cursorOutline.style.opacity = 0;
-    window.addEventListener("mousemove", function (e) {
-        if(cursorDot) { cursorDot.style.opacity = 1; cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`; }
-        if(cursorOutline) { cursorOutline.style.opacity = 1; cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" }); }
-    });
-}
-
 window.toggleSimpleMode = function() {
     document.body.classList.toggle('simple-mode');
     const btn = document.querySelector('.mode-switch');
@@ -211,13 +207,10 @@ window.toggleSimpleMode = function() {
     }
 };
 
-// 🌟 V29.0 核心：瀑布式掃描與渲染
-let globalRowIndex = 0; // 全局索引，用於計算延遲
+let globalRowIndex = 0; 
 
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr'); 
-    
-    // 🌟 設定延遲動畫：每行延遲 0.03s，產生掃描效果
     tr.style.animation = `fadeIn 0.5s ease forwards`;
     tr.style.animationDelay = `${globalRowIndex * 0.03}s`;
     globalRowIndex++;
@@ -247,72 +240,26 @@ function renderRow(container, player, rank) {
 }
 
 async function loadRankings() {
-    function runBootSequence() {
-        const textElement = document.getElementById('terminal-text');
-        const bootScreen = document.getElementById('boot-screen');
-        const stamp = document.querySelector('.access-stamp');
-        
-        // 安全檢查
-        if (!textElement || !bootScreen) return;
-        
-        // 鎖定捲軸，禁止滑動
-        document.body.classList.add('locked');
-    
-        const logs = [
-            "INITIALIZING SYSTEM...", 
-            "LOADING KERNEL MODULES...", 
-            "CONNECTING TO MLB DATABASE...", 
-            "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
-            "SYSTEM ONLINE."
-        ];
-        let lineIndex = 0;
-        
-        function typeLine() {
-            if (lineIndex < logs.length) {
-                const line = document.createElement('div');
-                line.textContent = `> ${logs[lineIndex]}`;
-                textElement.appendChild(line);
-                lineIndex++;
-                // 打字速度隨機，模擬真實感
-                setTimeout(typeLine, Math.random() * 80 + 30); 
-            } else {
-                // --- 階段 1: 文字跑完，文字淡出，蓋印章 ---
-                setTimeout(() => {
-                    textElement.style.opacity = 0; 
-                    if(stamp) stamp.classList.add('stamp-visible');
-                    
-                    // --- 階段 2: 讓印章停留 1.5 秒 (Show Time) ---
-                    setTimeout(() => {
-                        // 印章淡出
-                        if(stamp) {
-                            stamp.classList.remove('stamp-visible');
-                            stamp.classList.add('fade-out');
-                        }
-    
-                        // --- 階段 3: 印章消失後，閘門才開啟 ---
-                        setTimeout(() => {
-                            document.body.classList.add('loaded'); // CSS 觸發閘門滑開
-                            document.body.classList.remove('locked'); // 解鎖捲軸
-                            
-                            // --- 階段 4: 清理 DOM ---
-                            setTimeout(() => { 
-                                bootScreen.style.display = 'none'; 
-                                // 隱藏閘門元素，避免擋住點擊
-                                document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
-                            }, 1000); // 等閘門動畫跑完 (0.8s) 再隱藏
-                            
-                        }, 600); // 等印章淡出動畫 (0.5s) 差不多做完
-    
-                    }, 1500); // 讓印章顯示久一點
-                }, 500);
+    // 🌟 修正：在這裡呼叫開機動畫！
+    runBootSequence(); 
+
+    try {
+        const response = await fetch(CSV_FILE_PATH); const csvText = await response.text(); const rows = csvText.trim().split('\n').slice(1);
+        let waitingList = [], demotedList = [], leaderData = null;     
+        rows.forEach(row => {
+            const columns = row.split(','); if (columns.length < 3) return;
+            const name = columns[1].trim(), score = columns[2].trim(), note = columns[3] ? columns[3].trim() : ""; 
+            const playerData = { name: name, score: score, isLeader: false, isNPC: false, isDemoted: false, isNew: false };
+            if (name === '陰帝') { leaderData = playerData; leaderData.isLeader = true; } 
+            else {
+                if (note.includes('自願降團')) playerData.isDemoted = true;
+                if (note.includes('新血')) playerData.isNew = true;
+                if (playerData.isDemoted) { demotedList.push(playerData); } else { waitingList.push(playerData); }
             }
-        }
-        // 開始執行
-        typeLine();
-    }
+        });
         
         let globalRankCounter = 1; 
-        globalRowIndex = 0; // 重置動畫計數
+        globalRowIndex = 0; 
 
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
             const config = TEAM_CONFIG[teamNum]; const tableBody = document.getElementById(config.id); if (!tableBody) continue;
