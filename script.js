@@ -106,7 +106,7 @@ function initScrollEffects() {
     const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('reveal-active'); sectionObserver.unobserve(entry.target); } }); }, { threshold: 0.1 });
     sections.forEach(section => sectionObserver.observe(section));
 
-    // 導航點擊事件
+    // 🌟 導航點擊事件 (閃光特效)
     document.querySelectorAll('.nav-item').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -128,7 +128,7 @@ function initScrollEffects() {
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
         
-        // 粒子加速：接近頂部時加速
+        // 🌟 粒子加速：接近頂部時加速
         if (winScroll < 500) particleSpeedMultiplier = 3;
         else particleSpeedMultiplier = 1;
     });
@@ -231,8 +231,8 @@ async function loadRankings() {
             }
         });
         
-        let globalRankCounter = 1; // 重置排名
-        globalRowIndex = 0; // 重置動畫延遲
+        let globalRankCounter = 1; 
+        globalRowIndex = 0; // 重置動畫計數
 
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
             const config = TEAM_CONFIG[teamNum]; const tableBody = document.getElementById(config.id); if (!tableBody) continue;
@@ -248,7 +248,6 @@ async function loadRankings() {
             
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) { renderRow(tableBody, waitingList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
         }
-        // 初始化所有特效
         initCursor(); updateSysMonitor(); initParticles(); initSearch();
         setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
         const today = new Date(); const dateEl = document.getElementById('update-date');
