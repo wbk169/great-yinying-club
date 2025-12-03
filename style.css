@@ -1,4 +1,3 @@
-/* --- 全局變數 --- */
 :root {
     --neon-cyan: #00f3ff;
     --neon-blue: #0066ff;
@@ -19,7 +18,9 @@ body {
     overflow-x: hidden; overflow-y: auto;
     cursor: default; 
     touch-action: manipulation;
+    user-select: none; -webkit-user-select: none;
 }
+body.game-active { overflow: hidden; }
 @media (pointer: fine) { body { cursor: none; } }
 
 /* 捲軸 */
@@ -29,10 +30,49 @@ body {
 .scroll-progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 10001; background: rgba(255, 255, 255, 0.1); }
 .scroll-progress-bar { height: 100%; width: 0%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transition: width 0.1s; }
 
-/* 背景與特效 */
-.bg-particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background-image: radial-gradient(2px 2px at 20px 30px, #fff, transparent), radial-gradient(2px 2px at 40px 70px, #fff, transparent); background-size: 200px 200px; opacity: 0.3; animation: particles-move 60s linear infinite; }
-@keyframes particles-move { 0% { background-position: 0 0; } 100% { background-position: 0 1000px; } }
-.scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.4; }
+/* 🌟 V23.0 背景特效：蜂巢網格 */
+.bg-hexagons {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3;
+    /* 使用 CSS 繪製六角形紋理 */
+    background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 29px, rgba(0, 243, 255, 0.03) 30px),
+        repeating-linear-gradient(60deg, transparent, transparent 29px, rgba(0, 243, 255, 0.03) 30px),
+        repeating-linear-gradient(-60deg, transparent, transparent 29px, rgba(0, 243, 255, 0.03) 30px);
+    background-size: 70px 122px;
+}
+
+/* 🌟 V23.0 背景特效：全息旋轉球場 */
+.bg-baseball-field {
+    position: fixed; top: 50%; left: 50%; 
+    width: 80vh; height: 80vh;
+    transform: translate(-50%, -50%);
+    z-index: -2; opacity: 0.15;
+    pointer-events: none;
+}
+.bg-baseball-field::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    border: 2px solid var(--neon-cyan);
+    transform: rotate(45deg); /* 菱形 */
+    box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 20px var(--neon-cyan);
+    animation: field-rotate 60s linear infinite;
+}
+.bg-baseball-field::after {
+    content: ''; position: absolute; top: 25%; left: 25%; width: 50%; height: 50%;
+    border: 1px dashed var(--neon-purple);
+    transform: rotate(45deg);
+    animation: field-rotate-rev 40s linear infinite;
+}
+@keyframes field-rotate { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
+@keyframes field-rotate-rev { from { transform: rotate(45deg); } to { transform: rotate(-315deg); } }
+
+/* 🌟 V23.0 背景特效：數位煙霧 */
+.bg-fog {
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+    background: radial-gradient(circle at 50% 120%, rgba(0, 102, 255, 0.15), transparent 70%);
+    pointer-events: none;
+}
+
+.scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.3; }
 .crosshair-line { position: fixed; background: var(--neon-cyan); opacity: 0.3; z-index: 9990; pointer-events: none; }
 .crosshair-x { top: 0; left: 0; width: 100vw; height: 1px; }
 .crosshair-y { top: 0; left: 0; width: 1px; height: 100vh; }
@@ -78,7 +118,6 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 .row-npc { border-left: 3px solid var(--neon-green); } .row-npc .name, .row-npc .score { color: var(--neon-green); font-weight: bold; text-shadow: 0 0 5px rgba(0,255,127,0.5); }
 .row-demoted { border-left: 3px solid var(--neon-red); }
 .demoted-tag { display: inline-block; border: 1px solid var(--neon-red); color: var(--neon-red); padding: 1px 6px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; }
-/* 新血標籤 */
 .new-tag { display: inline-block; border: 1px solid #39ff14; color: #39ff14; padding: 1px 6px; border-radius: 4px; font-size: 0.75em; margin-left: 8px; vertical-align: middle; box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); animation: pulse-green 2s infinite; }
 @keyframes pulse-green { 0% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); } 50% { box-shadow: 0 0 15px rgba(57, 255, 20, 0.6); } 100% { box-shadow: 0 0 5px rgba(57, 255, 20, 0.3); } }
 
@@ -90,6 +129,14 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 .cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; }
 .cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, background-color 0.2s; opacity: 0; }
 
+/* 能量條樣式 (V22) */
+.power-bar-wrapper { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
+.power-bar-container { width: 120px; height: 6px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); margin-top: 4px; position: relative; overflow: hidden; clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); }
+.power-bar-fill { height: 100%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan)); width: 0%; box-shadow: 0 0 8px var(--neon-cyan); position: relative; transition: width 1s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.power-bar-fill::after { content: ''; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-45deg) translateX(-150%); animation: shimmer 2.5s infinite; }
+@keyframes shimmer { 0% { transform: skewX(-45deg) translateX(-150%); } 100% { transform: skewX(-45deg) translateX(150%); } }
+.baseball-icon { margin-right: 8px; font-size: 0.9em; vertical-align: middle; filter: drop-shadow(0 0 2px var(--neon-cyan)); }
+
 #boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: flex; align-items: center; padding: 20px; }
 #terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; }
 
@@ -99,7 +146,7 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
     h2 { text-align: left; font-size: 1.3em; }
     .team-section { padding: 20px; opacity: 1; transform: none; overflow-x: auto; }
     .ranking-table td { padding: 12px 10px; font-size: 0.9em; }
-    /* 手機版標題強制實心，避免透明 */
+    .power-bar-container { width: 70px; }
     .team-title { background: none !important; -webkit-text-fill-color: #fff !important; color: #fff !important; text-shadow: none !important; display: block !important; font-size: 1.5em !important; margin-bottom: 15px !important; }
     .tier-1-theme .team-title { color: var(--neon-gold) !important; -webkit-text-fill-color: var(--neon-gold) !important; }
     .tier-2-theme .team-title { color: var(--neon-cyan) !important; -webkit-text-fill-color: var(--neon-cyan) !important; }
@@ -111,59 +158,4 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
     * { animation: none !important; transition: none !important; }
     .bg-particles, .scanlines { opacity: 0.1; }
     .team-section { opacity: 1; transform: none; }
-}
-
-/* 🌟 V22.0 新增：戰力能量條 (Power Bar) */
-.power-bar-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end; /* 靠右對齊 */
-    justify-content: center;
-}
-
-.power-bar-container {
-    width: 120px; /* 條的總長度 */
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-color);
-    margin-top: 4px;
-    position: relative;
-    overflow: hidden;
-    clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); /* 賽博切角 */
-}
-
-.power-bar-fill {
-    height: 100%;
-    /* 預設青色，JS 會根據長度改變顏色 */
-    background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan));
-    width: 0%; /* 初始 0，由 JS 動畫撐開 */
-    box-shadow: 0 0 8px var(--neon-cyan);
-    position: relative;
-    transition: width 1s cubic-bezier(0.22, 0.61, 0.36, 1); /* 彈性動畫 */
-}
-
-/* 流光特效 */
-.power-bar-fill::after {
-    content: ''; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
-    transform: skewX(-45deg) translateX(-150%);
-    animation: shimmer 2.5s infinite;
-}
-
-@keyframes shimmer {
-    0% { transform: skewX(-45deg) translateX(-150%); }
-    100% { transform: skewX(-45deg) translateX(150%); }
-}
-
-/* 棒球圖示微調 */
-.baseball-icon {
-    margin-right: 8px;
-    font-size: 0.9em;
-    vertical-align: middle;
-    filter: drop-shadow(0 0 2px var(--neon-cyan));
-}
-
-/* 手機版縮短一點 */
-@media (max-width: 768px) {
-    .power-bar-container { width: 70px; }
 }
