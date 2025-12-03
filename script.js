@@ -125,8 +125,13 @@ function runBootSequence() {
 
     if (!textElement || !bootScreen) return;
 
-    const logs = ["INITIALIZING...", "LOADING KERNEL...", "CONNECTING DB...", "VERIFYING CREDENTIALS...", "ACCESS GRANTED."];
-    let lineIndex = 0;
+    const logs = [
+        "INITIALIZING SYSTEM...", 
+        "LOADING KERNEL...", 
+        "CONNECTING TO MLB DATABASE...", 
+        "TARGET FOUND: [ 大陰帝國 ]", // 🌟 把它獨立出來，加括號更帥
+        "ACCESS GRANTED."
+    ];    let lineIndex = 0;
     
     function typeLine() {
         if (lineIndex < logs.length) {
