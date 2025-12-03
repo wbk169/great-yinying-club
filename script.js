@@ -22,6 +22,8 @@ function hackEffect(element) {
     }, 30);
 }
 
+// 🌟 V29.0 升級：粒子速度可變
+let particleSpeedMultiplier = 1;
 function initParticles() {
     const canvas = document.getElementById('particle-canvas');
     if (!canvas) return;
@@ -38,10 +40,12 @@ function initParticles() {
         }
     }
     function animate() {
-        if(document.body.classList.contains('simple-mode')) return; // 簡化模式停止動畫
+        if(document.body.classList.contains('simple-mode')) return; 
         ctx.clearRect(0, 0, width, height);
         particles.forEach(p => {
-            p.x += p.vx; p.y += p.vy;
+            // 🌟 粒子速度隨捲動位置變化
+            p.x += p.vx * particleSpeedMultiplier;
+            p.y += p.vy * particleSpeedMultiplier;
             if(p.x<0||p.x>width) p.vx*=-1; if(p.y<0||p.y>height) p.vy*=-1;
             const dx = mouse.x - p.x, dy = mouse.y - p.y, dist = Math.sqrt(dx*dx + dy*dy), forceRadius = 150;
             if (dist < forceRadius) { const angle = Math.atan2(dy, dx), force = (forceRadius - dist) / forceRadius, pushX = Math.cos(angle)*force*5, pushY = Math.sin(angle)*force*5; p.x-=pushX; p.y-=pushY; }
@@ -87,20 +91,49 @@ function initMagnetic() {
         magnet.addEventListener('mouseleave', () => { magnet.style.transform = 'translate(0px, 0px)'; });
     });
 }
+
+// 🌟 V29.0 戰術導航與滾動特效
 function initScrollEffects() {
     const progressBar = document.getElementById('progressBar');
     const titles = document.querySelectorAll('.team-title');
     const sections = document.querySelectorAll('.team-section');
+    
+    // 標題解碼
     const titleObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { hackEffect(entry.target); titleObserver.unobserve(entry.target); } }); }, { threshold: 0.5 });
     titles.forEach(title => titleObserver.observe(title));
+
+    // 區塊進場
     const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('reveal-active'); sectionObserver.unobserve(entry.target); } }); }, { threshold: 0.1 });
     sections.forEach(section => sectionObserver.observe(section));
+
+    // 導航點擊事件
+    document.querySelectorAll('.nav-item').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').substring(1);
+            const section = document.getElementById(targetId);
+            if(section) {
+                // 平滑捲動
+                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // 閃光特效
+                section.classList.add('flash-active');
+                setTimeout(() => section.classList.remove('flash-active'), 800);
+            }
+        });
+    });
+
+    // 滾動監聽
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
         if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
+        
+        // 粒子加速：接近頂部時加速
+        if (winScroll < 500) particleSpeedMultiplier = 3;
+        else particleSpeedMultiplier = 1;
     });
 }
+
 function updateSysMonitor() {
     const monitor = document.getElementById('sysMonitor'); if (!monitor) return;
     const now = new Date();
@@ -135,7 +168,6 @@ function initCursor() {
     });
 }
 
-// 🌟 簡化模式切換
 window.toggleSimpleMode = function() {
     document.body.classList.toggle('simple-mode');
     const btn = document.querySelector('.mode-switch');
@@ -143,13 +175,21 @@ window.toggleSimpleMode = function() {
         btn.innerText = "[NORMAL MODE]";
     } else {
         btn.innerText = "[SIMPLE MODE]";
-        initParticles(); // 重新啟動粒子
+        initParticles(); 
     }
 };
 
+// 🌟 V29.0 核心：瀑布式掃描與渲染
+let globalRowIndex = 0; // 全局索引，用於計算延遲
+
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr'); 
+    
+    // 🌟 設定延遲動畫：每行延遲 0.03s，產生掃描效果
     tr.style.animation = `fadeIn 0.5s ease forwards`;
+    tr.style.animationDelay = `${globalRowIndex * 0.03}s`;
+    globalRowIndex++;
+
     let displayRank = `#${rank}`, displayScoreText = `PR: ${player.score}`;
     let rawScore = parseInt(player.score); if (isNaN(rawScore)) rawScore = 60000; 
     let percent = 5, barClass = 'bar-normal';
@@ -173,6 +213,7 @@ function renderRow(container, player, rank) {
     if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
     container.appendChild(tr);
 }
+
 async function loadRankings() {
     runBootSequence(); 
     try {
@@ -189,17 +230,25 @@ async function loadRankings() {
                 if (playerData.isDemoted) { demotedList.push(playerData); } else { waitingList.push(playerData); }
             }
         });
-        let globalRankCounter = 1; 
+        
+        let globalRankCounter = 1; // 重置排名
+        globalRowIndex = 0; // 重置動畫延遲
+
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
             const config = TEAM_CONFIG[teamNum]; const tableBody = document.getElementById(config.id); if (!tableBody) continue;
             const section = tableBody.closest('.team-section'); if (section) section.classList.add(config.theme); tableBody.innerHTML = ''; 
             let currentTeamCount = 0; const MAX_PER_TEAM = 20;  
+            
             if (teamNum === 1 && leaderData) { renderRow(tableBody, leaderData, globalRankCounter); currentTeamCount++; globalRankCounter++; }
+            
             const npcs = NPC_LIST[teamNum] || [];
             npcs.forEach(npcName => { if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) { renderRow(tableBody, { name: npcName, score: "強力NPC", isLeader: false, isNPC: true }, globalRankCounter); currentTeamCount++; globalRankCounter++; }});
+            
             if (teamNum === 5) { while (demotedList.length > 0) { renderRow(tableBody, demotedList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; } }
+            
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) { renderRow(tableBody, waitingList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
         }
+        // 初始化所有特效
         initCursor(); updateSysMonitor(); initParticles(); initSearch();
         setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
         const today = new Date(); const dateEl = document.getElementById('update-date');
