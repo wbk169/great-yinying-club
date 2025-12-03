@@ -290,3 +290,18 @@ body.loaded .shutter-bottom { transform: translateY(100%); }
     .bg-hexagons { opacity: 1; }
     .team-section { opacity: 1; transform: none; }
 }
+/* 🌟 V30.1 修正：印章淡出動畫 */
+.access-stamp.fade-out {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.2); /* 淡出時稍微放大 */
+    transition: all 0.5s ease-out;
+}
+
+/* 確保閘門線條在最上層，但在印章之下 */
+.shutter-gate {
+    z-index: 10001; /* 原本是 10000，稍微提高確保蓋住背景 */
+}
+/* 印章要在閘門之上 */
+.access-stamp {
+    z-index: 10002;
+}

@@ -247,21 +247,69 @@ function renderRow(container, player, rank) {
 }
 
 async function loadRankings() {
-    runBootSequence(); 
-    try {
-        const response = await fetch(CSV_FILE_PATH); const csvText = await response.text(); const rows = csvText.trim().split('\n').slice(1);
-        let waitingList = [], demotedList = [], leaderData = null;     
-        rows.forEach(row => {
-            const columns = row.split(','); if (columns.length < 3) return;
-            const name = columns[1].trim(), score = columns[2].trim(), note = columns[3] ? columns[3].trim() : ""; 
-            const playerData = { name: name, score: score, isLeader: false, isNPC: false, isDemoted: false, isNew: false };
-            if (name === '陰帝') { leaderData = playerData; leaderData.isLeader = true; } 
-            else {
-                if (note.includes('自願降團')) playerData.isDemoted = true;
-                if (note.includes('新血')) playerData.isNew = true;
-                if (playerData.isDemoted) { demotedList.push(playerData); } else { waitingList.push(playerData); }
+    function runBootSequence() {
+        const textElement = document.getElementById('terminal-text');
+        const bootScreen = document.getElementById('boot-screen');
+        const stamp = document.querySelector('.access-stamp');
+        
+        // 安全檢查
+        if (!textElement || !bootScreen) return;
+        
+        // 鎖定捲軸，禁止滑動
+        document.body.classList.add('locked');
+    
+        const logs = [
+            "INITIALIZING SYSTEM...", 
+            "LOADING KERNEL MODULES...", 
+            "CONNECTING TO MLB DATABASE...", 
+            "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
+            "SYSTEM ONLINE."
+        ];
+        let lineIndex = 0;
+        
+        function typeLine() {
+            if (lineIndex < logs.length) {
+                const line = document.createElement('div');
+                line.textContent = `> ${logs[lineIndex]}`;
+                textElement.appendChild(line);
+                lineIndex++;
+                // 打字速度隨機，模擬真實感
+                setTimeout(typeLine, Math.random() * 80 + 30); 
+            } else {
+                // --- 階段 1: 文字跑完，文字淡出，蓋印章 ---
+                setTimeout(() => {
+                    textElement.style.opacity = 0; 
+                    if(stamp) stamp.classList.add('stamp-visible');
+                    
+                    // --- 階段 2: 讓印章停留 1.5 秒 (Show Time) ---
+                    setTimeout(() => {
+                        // 印章淡出
+                        if(stamp) {
+                            stamp.classList.remove('stamp-visible');
+                            stamp.classList.add('fade-out');
+                        }
+    
+                        // --- 階段 3: 印章消失後，閘門才開啟 ---
+                        setTimeout(() => {
+                            document.body.classList.add('loaded'); // CSS 觸發閘門滑開
+                            document.body.classList.remove('locked'); // 解鎖捲軸
+                            
+                            // --- 階段 4: 清理 DOM ---
+                            setTimeout(() => { 
+                                bootScreen.style.display = 'none'; 
+                                // 隱藏閘門元素，避免擋住點擊
+                                document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+                            }, 1000); // 等閘門動畫跑完 (0.8s) 再隱藏
+                            
+                        }, 600); // 等印章淡出動畫 (0.5s) 差不多做完
+    
+                    }, 1500); // 讓印章顯示久一點
+                }, 500);
             }
-        });
+        }
+        // 開始執行
+        typeLine();
+    }
         
         let globalRankCounter = 1; 
         globalRowIndex = 0; // 重置動畫計數
