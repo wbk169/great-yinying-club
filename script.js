@@ -1,6 +1,18 @@
-// 設定檔案路徑
+// ==========================================
+// 1. 設定與變數定義
+// ==========================================
 const CSV_FILE_PATH = 'rankings.csv';
-const NPC_LIST = { 1: [], 2: [], 3: ['未入團強力路人1', '未入團強力路人2'], 4: ['未入團強力路人5'], 5: [] };
+
+// NPC 設定
+const NPC_LIST = { 
+    1: [], 
+    2: [], 
+    3: ['未入團強力路人1', '未入團強力路人2'], 
+    4: ['未入團強力路人5'], 
+    5: [] 
+};
+
+// 團別設定
 const TEAM_CONFIG = {
     1: { name: '大陰帝國', id: 'team1-body', theme: 'tier-1-theme' },
     2: { name: '大陰帝國-稽查菊', id: 'team2-body', theme: 'tier-2-theme' },
@@ -9,139 +21,30 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
+// ==========================================
+// 2. 網站視覺特效 (純淨版)
+// ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+
 function hackEffect(element) {
-    let iterations = 0; const originalText = element.dataset.value || element.innerText; 
+    let iterations = 0;
+    const originalText = element.dataset.value || element.innerText; 
     if(!element.dataset.value) element.dataset.value = originalText;
+
     const interval = setInterval(() => {
-        element.innerText = originalText.split("").map((letter, index) => {
-            if(index < iterations) return originalText[index];
-            return letters[Math.floor(Math.random() * 43)];
-        }).join("");
-        if(iterations >= originalText.length) clearInterval(interval); iterations += 1 / 2; 
+        element.innerText = originalText.split("")
+            .map((letter, index) => {
+                if(index < iterations) return originalText[index];
+                return letters[Math.floor(Math.random() * 43)];
+            })
+            .join("");
+        
+        if(iterations >= originalText.length) clearInterval(interval);
+        iterations += 1 / 2; 
     }, 30);
 }
 
-function initMagnetic() {
-    if (window.innerWidth < 768) return; 
-    const magnets = document.querySelectorAll('.team-title');
-    magnets.forEach(magnet => {
-        magnet.classList.add('magnetic-target'); 
-        magnet.addEventListener('mousemove', (e) => {
-            const rect = magnet.getBoundingClientRect();
-            magnet.style.transform = `translate(${(e.clientX - rect.left - rect.width / 2) * 0.05}px, ${(e.clientY - rect.top - rect.height / 2) * 0.1}px)`;
-        });
-        magnet.addEventListener('mouseleave', () => { magnet.style.transform = 'translate(0px, 0px)'; });
-    });
-}
-
-function initScrollEffects() {
-    const progressBar = document.getElementById('progressBar');
-    const titles = document.querySelectorAll('.team-title');
-    const sections = document.querySelectorAll('.team-section');
-    
-    const titleObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                hackEffect(entry.target); 
-                titleObserver.unobserve(entry.target); 
-            }
-        });
-    }, { threshold: 0.5 });
-    titles.forEach(title => titleObserver.observe(title));
-
-    const sectionObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('reveal-active');
-                sectionObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-    sections.forEach(section => sectionObserver.observe(section));
-
-    window.addEventListener('scroll', () => {
-        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
-    });
-}
-
-function updateSysMonitor() {
-    const monitor = document.getElementById('sysMonitor'); if (!monitor) return;
-    const now = new Date();
-    monitor.innerHTML = `SYS_TIME: ${now.toLocaleTimeString('en-US', { hour12: false })}<br>FPS: 60<br>PING: ${Math.floor(Math.random()*10+5)}ms<br>STATUS: STABLE`;
-}
-setInterval(updateSysMonitor, 1000);
-
-// 🌟 V30.0 獨立出來的開機動畫函式
-function runBootSequence() {
-    const textElement = document.getElementById('terminal-text');
-    const bootScreen = document.getElementById('boot-screen');
-    const stamp = document.querySelector('.access-stamp');
-    
-    if (!textElement || !bootScreen) return;
-    
-    // 鎖定
-    document.body.classList.add('locked');
-
-    const logs = [
-        "INITIALIZING SYSTEM...", 
-        "LOADING KERNEL MODULES...", 
-        "CONNECTING TO MLB DATABASE...", 
-        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
-        "SYSTEM ONLINE."
-    ];
-    let lineIndex = 0;
-    
-    function typeLine() {
-        if (lineIndex < logs.length) {
-            const line = document.createElement('div');
-            line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line);
-            lineIndex++;
-            setTimeout(typeLine, Math.random() * 80 + 30); 
-        } else {
-            setTimeout(() => {
-                textElement.style.opacity = 0; 
-                if(stamp) stamp.classList.add('stamp-visible');
-                
-                setTimeout(() => {
-                    if(stamp) {
-                        stamp.classList.remove('stamp-visible');
-                        stamp.classList.add('fade-out');
-                    }
-
-                    setTimeout(() => {
-                        document.body.classList.add('loaded'); 
-                        document.body.classList.remove('locked'); 
-                        
-                        setTimeout(() => { 
-                            bootScreen.style.display = 'none'; 
-                            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
-                        }, 1000);
-                    }, 600); 
-                }, 1500); 
-            }, 500);
-        }
-    }
-    typeLine();
-}
-
-function initCursor() {
-    if (window.innerWidth < 768) return;
-    const cursorDot = document.querySelector('[data-cursor-dot]');
-    const cursorOutline = document.querySelector('[data-cursor-outline]');
-    if(!cursorDot || !cursorOutline) return;
-    cursorDot.style.opacity = 0; cursorOutline.style.opacity = 0;
-    window.addEventListener("mousemove", function (e) {
-        if(cursorDot) { cursorDot.style.opacity = 1; cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`; }
-        if(cursorOutline) { cursorOutline.style.opacity = 1; cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" }); }
-    });
-}
-
-// V25.0 粒子系統
-let particleSpeedMultiplier = 1;
+// 粒子系統
 function initParticles() {
     const canvas = document.getElementById('particle-canvas');
     if (!canvas) return;
@@ -161,8 +64,7 @@ function initParticles() {
         if(document.body.classList.contains('simple-mode')) return; 
         ctx.clearRect(0, 0, width, height);
         particles.forEach(p => {
-            p.x += p.vx * particleSpeedMultiplier;
-            p.y += p.vy * particleSpeedMultiplier;
+            p.x += p.vx; p.y += p.vy;
             if(p.x<0||p.x>width) p.vx*=-1; if(p.y<0||p.y>height) p.vy*=-1;
             const dx = mouse.x - p.x, dy = mouse.y - p.y, dist = Math.sqrt(dx*dx + dy*dy), forceRadius = 150;
             if (dist < forceRadius) { const angle = Math.atan2(dy, dx), force = (forceRadius - dist) / forceRadius, pushX = Math.cos(angle)*force*5, pushY = Math.sin(angle)*force*5; p.x-=pushX; p.y-=pushY; }
@@ -173,6 +75,7 @@ function initParticles() {
     resize(); animate();
 }
 
+// 搜尋功能
 function initSearch() {
     const input = document.getElementById('search-input');
     if (!input) return;
@@ -188,6 +91,7 @@ function initSearch() {
     });
 }
 
+// 點擊特效
 function createClickRipple(e) {
     if(document.body.classList.contains('simple-mode')) return;
     const ripple = document.createElement('div'); ripple.className = 'click-ripple';
@@ -195,6 +99,115 @@ function createClickRipple(e) {
     document.body.appendChild(ripple); setTimeout(() => ripple.remove(), 500);
 }
 window.addEventListener('mousedown', createClickRipple);
+
+function initMagnetic() {
+    if (window.innerWidth < 768) return; 
+    const magnets = document.querySelectorAll('.team-title');
+    magnets.forEach(magnet => {
+        magnet.classList.add('magnetic-target'); 
+        magnet.addEventListener('mousemove', (e) => {
+            const rect = magnet.getBoundingClientRect();
+            magnet.style.transform = `translate(${(e.clientX - rect.left - rect.width / 2) * 0.05}px, ${(e.clientY - rect.top - rect.height / 2) * 0.1}px)`;
+        });
+        magnet.addEventListener('mouseleave', () => { magnet.style.transform = 'translate(0px, 0px)'; });
+    });
+}
+
+function initScrollEffects() {
+    const progressBar = document.getElementById('progressBar');
+    const titles = document.querySelectorAll('.team-title');
+    const sections = document.querySelectorAll('.team-section');
+    const titleObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { hackEffect(entry.target); titleObserver.unobserve(entry.target); } }); }, { threshold: 0.5 });
+    titles.forEach(title => titleObserver.observe(title));
+    const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('reveal-active'); sectionObserver.unobserve(entry.target); } }); }, { threshold: 0.1 });
+    sections.forEach(section => sectionObserver.observe(section));
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        if(progressBar) progressBar.style.width = (winScroll / height) * 100 + "%";
+    });
+}
+
+function updateSysMonitor() {
+    const monitor = document.getElementById('sysMonitor'); if (!monitor) return;
+    const now = new Date();
+    monitor.innerHTML = `SYS_TIME: ${now.toLocaleTimeString('en-US', { hour12: false })}<br>FPS: 60<br>PING: ${Math.floor(Math.random()*10+5)}ms<br>STATUS: STABLE`;
+}
+setInterval(updateSysMonitor, 1000);
+
+// 🌟 V30.0 開機動畫邏輯
+function runBootSequence() {
+    const textElement = document.getElementById('terminal-text');
+    const bootScreen = document.getElementById('boot-screen');
+    const stamp = document.querySelector('.access-stamp');
+    
+    // 安全檢查：如果找不到元素，直接結束函式，避免報錯
+    if (!textElement || !bootScreen) {
+        console.log("Boot screen elements not found.");
+        return;
+    }
+    
+    // 鎖定捲軸
+    document.body.classList.add('locked');
+
+    const logs = [
+        "INITIALIZING SYSTEM...", 
+        "LOADING KERNEL MODULES...", 
+        "CONNECTING TO MLB DATABASE...", 
+        "VERIFYING CLUB CREDENTIALS [大陰帝國]...", 
+        "SYSTEM ONLINE."
+    ];
+    let lineIndex = 0;
+    
+    function typeLine() {
+        if (lineIndex < logs.length) {
+            const line = document.createElement('div');
+            line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line);
+            lineIndex++;
+            setTimeout(typeLine, Math.random() * 60 + 20); // 加快打字速度
+        } else {
+            // 1. 文字跑完，顯示印章
+            setTimeout(() => {
+                textElement.style.opacity = 0; 
+                if(stamp) stamp.classList.add('stamp-visible');
+                
+                // 2. 印章停留
+                setTimeout(() => {
+                    if(stamp) {
+                        stamp.classList.remove('stamp-visible');
+                        stamp.classList.add('fade-out');
+                    }
+
+                    // 3. 閘門開啟
+                    setTimeout(() => {
+                        document.body.classList.add('loaded'); 
+                        document.body.classList.remove('locked'); 
+                        
+                        // 4. 移除 DOM
+                        setTimeout(() => { 
+                            bootScreen.style.display = 'none'; 
+                            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+                        }, 1000);
+                    }, 600); 
+                }, 1200); 
+            }, 300);
+        }
+    }
+    typeLine();
+}
+
+function initCursor() {
+    if (window.innerWidth < 768) return;
+    const cursorDot = document.querySelector('[data-cursor-dot]');
+    const cursorOutline = document.querySelector('[data-cursor-outline]');
+    if(!cursorDot || !cursorOutline) return;
+    cursorDot.style.opacity = 0; cursorOutline.style.opacity = 0;
+    window.addEventListener("mousemove", function (e) {
+        if(cursorDot) { cursorDot.style.opacity = 1; cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`; }
+        if(cursorOutline) { cursorOutline.style.opacity = 1; cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" }); }
+    });
+}
 
 window.toggleSimpleMode = function() {
     document.body.classList.toggle('simple-mode');
@@ -207,16 +220,19 @@ window.toggleSimpleMode = function() {
     }
 };
 
+// 🌟 核心：渲染邏輯
 let globalRowIndex = 0; 
 
 function renderRow(container, player, rank) {
     const tr = document.createElement('tr'); 
     tr.style.animation = `fadeIn 0.5s ease forwards`;
-    tr.style.animationDelay = `${globalRowIndex * 0.03}s`;
+    tr.style.animationDelay = `${globalRowIndex * 0.03}s`; // 瀑布流延遲
     globalRowIndex++;
 
     let displayRank = `#${rank}`, displayScoreText = `PR: ${player.score}`;
     let rawScore = parseInt(player.score); if (isNaN(rawScore)) rawScore = 60000; 
+    
+    // 能量條邏輯
     let percent = 5, barClass = 'bar-normal';
     if (rawScore < 500) { percent = 98 + Math.random() * 2; barClass = 'bar-god'; } 
     else if (rawScore < 2000) { percent = 85 + (1 - rawScore/2000) * 10; barClass = 'bar-legend'; } 
@@ -233,14 +249,29 @@ function renderRow(container, player, rank) {
         if (player.isNew) { tagsHtml += `<span class="new-tag">新血</span>`; icon = '🌱'; }
         displayScoreText += tagsHtml;
     }
-    tr.innerHTML = `<td class="rank">${displayRank}</td><td class="hacker-text name" data-value="${player.name}"><span class="baseball-icon">${icon}</span>${player.name}</td><td class="score"><div class="power-bar-wrapper"><div style="margin-bottom:2px;">${displayScoreText}</div><div class="power-bar-container"><div class="power-bar-fill ${barClass}" style="width: ${percent}%;"></div></div></div></td>`;
+
+    tr.innerHTML = `
+        <td class="rank">${displayRank}</td>
+        <td class="hacker-text name" data-value="${player.name}">
+            <span class="baseball-icon">${icon}</span>${player.name}
+        </td>
+        <td class="score">
+            <div class="power-bar-wrapper">
+                <div style="margin-bottom:2px;">${displayScoreText}</div>
+                <div class="power-bar-container">
+                    <div class="power-bar-fill ${barClass}" style="width: ${percent}%;"></div>
+                </div>
+            </div>
+        </td>
+    `;
+    
     const nameCell = tr.querySelector('.hacker-text');
     if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
     container.appendChild(tr);
 }
 
 async function loadRankings() {
-    // 🌟 修正：在這裡呼叫開機動畫！
+    // 🌟 啟動開場動畫
     runBootSequence(); 
 
     try {
@@ -279,7 +310,12 @@ async function loadRankings() {
         setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
         const today = new Date(); const dateEl = document.getElementById('update-date');
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-    } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
+    } catch (error) { 
+        console.error('讀取數據失敗:', error); 
+        // 如果出錯，也要把黑幕關掉，不然使用者會以為網頁壞了
+        const bootScreen = document.getElementById('boot-screen');
+        if(bootScreen) bootScreen.style.display = 'none'; 
+    }
 }
 
 loadRankings();
