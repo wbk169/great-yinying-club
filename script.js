@@ -318,4 +318,22 @@ async function loadRankings() {
     }
 }
 
-loadRankings();
+// 🌟 修正：確保網頁讀取完畢後才執行，避免卡死在黑畫面
+document.addEventListener("DOMContentLoaded", () => {
+    // 雙重保險：如果 5 秒後開場動畫還沒跑完(卡住)，強制解鎖畫面
+    setTimeout(() => {
+        const boot = document.getElementById('boot-screen');
+        const gates = document.querySelectorAll('.shutter-gate');
+        
+        // 如果黑幕還在，就強制關掉
+        if (boot && window.getComputedStyle(boot).display !== 'none') {
+            boot.style.display = 'none';
+            gates.forEach(g => g.style.display = 'none');
+            document.body.classList.remove('locked');
+            console.log("強制解鎖畫面");
+        }
+    }, 5000);
+
+    // 正常啟動主程式
+    loadRankings();
+});
