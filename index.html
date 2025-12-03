@@ -8,14 +8,20 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="particle-canvas"></canvas>
+    
     <div class="bg-hexagons"></div>
     <div class="bg-baseball-field"></div>
     <div class="bg-fog"></div>
+    <div class="scanlines"></div>
 
-    <div class="scroll-progress-container">
-        <div class="scroll-progress-bar" id="progressBar"></div>
+    <div class="cursor-dot" data-cursor-dot></div>
+    <div class="cursor-outline" data-cursor-outline></div>
+
+    <div id="boot-screen">
+        <div id="terminal-text" class="blink-cursor"></div>
     </div>
-    
+
     <div class="sys-monitor" id="sysMonitor">
         FPS: 60<br>
         PING: 12ms<br>
@@ -27,20 +33,18 @@
     <div class="hud-corner hud-bl"></div>
     <div class="hud-corner hud-br"></div>
 
-    <div id="boot-screen">
-        <div id="terminal-text" class="blink-cursor"></div>
-    </div>
-    <div class="cursor-dot" data-cursor-dot></div>
-    <div class="cursor-outline" data-cursor-outline></div>
-    <div class="bg-particles"></div>
-    <div class="scanlines"></div>
-
     <header>
         <h1>🦅 大陰帝國俱樂部 2025 ⚾</h1>
         <p>MLB：九局職棒25 | 2025 MLB RANKING</p>
     </header>
 
     <main>
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="SEARCH TARGET [輸入帳號]..." autocomplete="off">
+            <div class="search-line"></div>
+        </div>
+
         <h2>戰力排名總覽 | 更新日期：<span id="update-date">載入中...</span></h2>
         
         <section class="team-section">
@@ -82,7 +86,6 @@
                 <tbody id="team5-body"></tbody>
             </table>
         </section>
-
     </main>
 
     <script src="script.js"></script>

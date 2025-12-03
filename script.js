@@ -21,6 +21,141 @@ function hackEffect(element) {
         if(iterations >= originalText.length) clearInterval(interval); iterations += 1 / 2; 
     }, 30);
 }
+
+// 🌟 V25.0 互動粒子系統 (Interactive Particles)
+function initParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let particles = [];
+    // 滑鼠位置
+    let mouse = { x: -1000, y: -1000 };
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        createParticles();
+    }
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+    function createParticles() {
+        particles = [];
+        // 根據螢幕大小決定粒子數量 (手機少一點)
+        const count = window.innerWidth < 768 ? 50 : 100;
+        for(let i=0; i<count; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() - 0.5) * 0.5, // 緩慢移動
+                vy: (Math.random() - 0.5) * 0.5,
+                size: Math.random() * 2 + 1,
+                color: Math.random() > 0.5 ? '#00f3ff' : '#bc13fe' // 青色或紫色
+            });
+        }
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        
+        particles.forEach(p => {
+            // 基本移動
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // 邊界反彈
+            if (p.x < 0 || p.x > width) p.vx *= -1;
+            if (p.y < 0 || p.y > height) p.vy *= -1;
+
+            // 🌟 互動邏輯：滑鼠力場 (推開)
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const forceRadius = 150; // 力場半徑
+
+            if (dist < forceRadius) {
+                const angle = Math.atan2(dy, dx);
+                const force = (forceRadius - dist) / forceRadius;
+                const pushX = Math.cos(angle) * force * 5; // 推力強度
+                const pushY = Math.sin(angle) * force * 5;
+                p.x -= pushX;
+                p.y -= pushY;
+            }
+
+            // 繪製
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = 0.6;
+            ctx.fill();
+        });
+        
+        // 連線 (選用，增加科技感，距離近的粒子連線)
+        ctx.globalAlpha = 0.1;
+        ctx.strokeStyle = '#fff';
+        for(let i=0; i<particles.length; i++) {
+            for(let j=i+1; j<particles.length; j++) {
+                const dx = particles[i].x - particles[j].x;
+                const dy = particles[i].y - particles[j].y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 100) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(particles[j].x, particles[j].y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    resize();
+    animate();
+}
+
+// 🌟 V25.0 戰術搜尋功能
+function initSearch() {
+    const input = document.getElementById('search-input');
+    if (!input) return;
+
+    input.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.ranking-table tbody tr');
+
+        rows.forEach(row => {
+            // 從 data-value (名字) 搜尋
+            const nameCell = row.querySelector('.name');
+            const name = nameCell ? nameCell.dataset.value.toLowerCase() : '';
+            
+            if (name.includes(term)) {
+                row.style.display = '';
+                row.style.opacity = '1';
+                // 搜尋命中時給予高亮
+                if(term.length > 0) row.style.background = 'rgba(0, 243, 255, 0.2)';
+                else row.style.background = '';
+            } else {
+                row.style.display = 'none';
+                row.style.opacity = '0';
+            }
+        });
+    });
+}
+
+// 🌟 V25.0 點擊衝擊波 (Click Ripple)
+function createClickRipple(e) {
+    const ripple = document.createElement('div');
+    ripple.className = 'click-ripple';
+    ripple.style.left = `${e.clientX}px`;
+    ripple.style.top = `${e.clientY}px`;
+    document.body.appendChild(ripple);
+    // 動畫結束後移除
+    setTimeout(() => ripple.remove(), 500);
+}
+window.addEventListener('mousedown', createClickRipple);
+
+
 function initMagnetic() {
     if (window.innerWidth < 768) return; 
     const magnets = document.querySelectorAll('.team-title');
@@ -87,83 +222,31 @@ function initCursor() {
         if(cursorOutline) { cursorOutline.style.opacity = 1; cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 100, fill: "forwards" }); }
     });
 }
-
-// 🌟 V24.0 核心：階級特化渲染
 function renderRow(container, player, rank) {
-    const tr = document.createElement('tr'); 
-    tr.style.animation = `fadeIn 0.5s ease forwards`;
+    const tr = document.createElement('tr'); tr.style.animation = `fadeIn 0.5s ease forwards`;
+    let displayRank = `#${rank}`, displayScoreText = `PR: ${player.score}`;
+    let rawScore = parseInt(player.score); if (isNaN(rawScore)) rawScore = 60000; 
+    let percent = 5, barClass = 'bar-normal';
+    if (rawScore < 500) { percent = 98 + Math.random() * 2; barClass = 'bar-god'; } 
+    else if (rawScore < 2000) { percent = 85 + (1 - rawScore/2000) * 10; barClass = 'bar-legend'; } 
+    else if (rawScore < 8000) { percent = 65 + (1 - rawScore/8000) * 15; barClass = 'bar-master'; } 
+    else if (rawScore < 20000) { percent = 40 + (1 - rawScore/20000) * 20; barClass = 'bar-diamond'; } 
+    else { percent = Math.max(5, (1 - rawScore/60000) * 40); if (percent < 15) barClass = 'bar-weak'; }
     
-    let displayRank = `#${rank}`;
-    let displayScoreText = `PR: ${player.score}`;
-    
-    let rawScore = parseInt(player.score);
-    if (isNaN(rawScore)) rawScore = 60000; 
-
-    // --- 1. 階級判定 & 長度加權 (Tier Logic) ---
-    let percent = 5;
-    let barClass = 'bar-normal';
-
-    // 根據分數賦予不同階級
-    if (rawScore < 500) {
-        // 神級 (God Tier) - 永遠接近滿條
-        percent = 98 + Math.random() * 2; 
-        barClass = 'bar-god';
-    } else if (rawScore < 2000) {
-        // 傳奇 (Legend) - 85% ~ 95%
-        percent = 85 + (1 - rawScore/2000) * 10;
-        barClass = 'bar-legend';
-    } else if (rawScore < 8000) {
-        // 大師 (Master) - 65% ~ 80%
-        percent = 65 + (1 - rawScore/8000) * 15;
-        barClass = 'bar-master';
-    } else if (rawScore < 20000) {
-        // 鑽石 (Diamond) - 40% ~ 60%
-        percent = 40 + (1 - rawScore/20000) * 20;
-        barClass = 'bar-diamond';
-    } else {
-        // 一般 - 根據比例衰減
-        percent = Math.max(5, (1 - rawScore/60000) * 40);
-        if (percent < 15) barClass = 'bar-weak';
-    }
-
-    // --- 2. 處理特殊身份 ---
     let icon = '⚾'; 
-    if (player.isLeader) { 
-        tr.classList.add('row-leader'); displayRank = '#1'; displayScoreText = '👑 大陰團長'; icon = '🏆'; 
-        percent = 100; barClass = 'bar-god';
-    } 
-    else if (player.isNPC) { 
-        tr.classList.add('row-npc'); displayScoreText = '⚡ 強力NPC'; icon = '🤖'; 
-        percent = 95; barClass = 'bar-legend';
-    } 
+    if (player.isLeader) { tr.classList.add('row-leader'); displayRank = '#1'; displayScoreText = '👑 大陰團長'; icon = '🏆'; percent = 100; barClass = 'bar-god'; } 
+    else if (player.isNPC) { tr.classList.add('row-npc'); displayScoreText = '⚡ 強力NPC'; icon = '🤖'; percent = 95; barClass = 'bar-legend'; } 
     else {
         let tagsHtml = '';
         if (player.isDemoted) { tr.classList.add('row-demoted'); tagsHtml += `<span class="demoted-tag">自願降團</span>`; icon = '📉'; }
         if (player.isNew) { tagsHtml += `<span class="new-tag">新血</span>`; icon = '🌱'; }
         displayScoreText += tagsHtml;
     }
-
-    // --- 3. 生成 HTML ---
-    tr.innerHTML = `
-        <td class="rank">${displayRank}</td>
-        <td class="hacker-text name" data-value="${player.name}">
-            <span class="baseball-icon">${icon}</span>${player.name}
-        </td>
-        <td class="score">
-            <div class="power-bar-wrapper">
-                <div style="margin-bottom:2px;">${displayScoreText}</div>
-                <div class="power-bar-container">
-                    <div class="power-bar-fill ${barClass}" style="width: ${percent}%;"></div>
-                </div>
-            </div>
-        </td>
-    `;
-    
+    tr.innerHTML = `<td class="rank">${displayRank}</td><td class="hacker-text name" data-value="${player.name}"><span class="baseball-icon">${icon}</span>${player.name}</td><td class="score"><div class="power-bar-wrapper"><div style="margin-bottom:2px;">${displayScoreText}</div><div class="power-bar-container"><div class="power-bar-fill ${barClass}" style="width: ${percent}%;"></div></div></div></td>`;
     const nameCell = tr.querySelector('.hacker-text');
     if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
     container.appendChild(tr);
 }
-
 async function loadRankings() {
     runBootSequence(); 
     try {
@@ -191,7 +274,11 @@ async function loadRankings() {
             if (teamNum === 5) { while (demotedList.length > 0) { renderRow(tableBody, demotedList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; } }
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) { renderRow(tableBody, waitingList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
         }
-        initCursor(); updateSysMonitor(); setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
+        // 初始化所有特效
+        initCursor(); updateSysMonitor(); 
+        initParticles(); // 啟動粒子
+        initSearch();    // 啟動搜尋
+        setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
         const today = new Date(); const dateEl = document.getElementById('update-date');
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
