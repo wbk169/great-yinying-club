@@ -89,17 +89,49 @@ function initCursor() {
         if(crossX && crossY) { crossX.style.top = `${e.clientY}px`; crossY.style.left = `${e.clientX}px`; }
     });
 }
+
+// 🌟 V21.0 更新：支援新血標籤渲染
 function renderRow(container, player, rank) {
-    const tr = document.createElement('tr'); tr.style.animation = `fadeIn 0.5s ease forwards`;
-    let displayRank = `#${rank}`, displayScore = `(PR: ${player.score})`;
-    if (player.isLeader) { tr.classList.add('row-leader'); displayRank = '#1'; displayScore = '👑 大陰團長'; } 
-    else if (player.isNPC) { tr.classList.add('row-npc'); displayScore = '⚡ 強力NPC'; } 
-    else if (player.isDemoted) { tr.classList.add('row-demoted'); displayScore = `(PR: ${player.score}) <span class="demoted-tag">自願降團</span>`; }
+    const tr = document.createElement('tr'); 
+    tr.style.animation = `fadeIn 0.5s ease forwards`;
+    let displayRank = `#${rank}`;
+    let displayScore = `(PR: ${player.score})`;
+    
+    // 判斷特殊身分並添加 Class
+    if (player.isLeader) { 
+        tr.classList.add('row-leader'); 
+        displayRank = '#1'; 
+        displayScore = '👑 大陰團長'; 
+    } 
+    else if (player.isNPC) { 
+        tr.classList.add('row-npc'); 
+        displayScore = '⚡ 強力NPC'; 
+    } 
+    else {
+        // 一般玩家，處理標籤
+        let tagsHtml = '';
+        
+        // 1. 自願降團標籤
+        if (player.isDemoted) { 
+            tr.classList.add('row-demoted'); 
+            tagsHtml += `<span class="demoted-tag">自願降團</span>`;
+        }
+        
+        // 2. 新血標籤 (🌟 新增邏輯)
+        if (player.isNew) {
+            tagsHtml += `<span class="new-tag">新血</span>`;
+        }
+
+        // 組合分數與標籤
+        displayScore += tagsHtml;
+    }
+
     tr.innerHTML = `<td class="rank">${displayRank}</td><td class="hacker-text name" data-value="${player.name}">${player.name}</td><td class="score">${displayScore}</td>`;
     const nameCell = tr.querySelector('.hacker-text');
     if(nameCell) nameCell.addEventListener('mouseover', () => hackEffect(nameCell));
     container.appendChild(tr);
 }
+
 async function loadRankings() {
     runBootSequence(); 
     try {
@@ -107,21 +139,47 @@ async function loadRankings() {
         let waitingList = [], demotedList = [], leaderData = null;     
         rows.forEach(row => {
             const columns = row.split(','); if (columns.length < 3) return;
-            const name = columns[1].trim(), score = columns[2].trim(), note = columns[3] ? columns[3].trim() : ""; 
-            const playerData = { name: name, score: score, isLeader: false, isNPC: false, isDemoted: false };
-            if (name === '陰帝') { leaderData = playerData; leaderData.isLeader = true; } 
-            else if (note.includes('自願降團')) { playerData.isDemoted = true; demotedList.push(playerData); } 
-            else { waitingList.push(playerData); }
+            const name = columns[1].trim(), score = columns[2].trim();
+            const note = columns[3] ? columns[3].trim() : ""; // 讀取備註欄
+            
+            const playerData = { 
+                name: name, 
+                score: score, 
+                isLeader: false, 
+                isNPC: false, 
+                isDemoted: false,
+                isNew: false // 🌟 初始化新血狀態
+            };
+
+            if (name === '陰帝') { 
+                leaderData = playerData; leaderData.isLeader = true; 
+            } 
+            else {
+                // 檢查標籤
+                if (note.includes('自願降團')) playerData.isDemoted = true;
+                if (note.includes('新血')) playerData.isNew = true; // 🌟 檢查新血
+
+                if (playerData.isDemoted) {
+                    demotedList.push(playerData); 
+                } else {
+                    waitingList.push(playerData); 
+                }
+            }
         });
+        
         let globalRankCounter = 1; 
         for (let teamNum = 1; teamNum <= 5; teamNum++) {
             const config = TEAM_CONFIG[teamNum]; const tableBody = document.getElementById(config.id); if (!tableBody) continue;
             const section = tableBody.closest('.team-section'); if (section) section.classList.add(config.theme); tableBody.innerHTML = ''; 
             let currentTeamCount = 0; const MAX_PER_TEAM = 20;  
+            
             if (teamNum === 1 && leaderData) { renderRow(tableBody, leaderData, globalRankCounter); currentTeamCount++; globalRankCounter++; }
+            
             const npcs = NPC_LIST[teamNum] || [];
             npcs.forEach(npcName => { if (teamNum === 5 || currentTeamCount < MAX_PER_TEAM) { renderRow(tableBody, { name: npcName, score: "強力NPC", isLeader: false, isNPC: true }, globalRankCounter); currentTeamCount++; globalRankCounter++; }});
+            
             if (teamNum === 5) { while (demotedList.length > 0) { renderRow(tableBody, demotedList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; } }
+            
             while (waitingList.length > 0 && (teamNum === 5 || currentTeamCount < MAX_PER_TEAM)) { renderRow(tableBody, waitingList.shift(), globalRankCounter); currentTeamCount++; globalRankCounter++; }
         }
         initCursor(); updateSysMonitor(); setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
@@ -130,7 +188,7 @@ async function loadRankings() {
     } catch (error) { console.error('讀取數據失敗:', error); if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; }
 }
 
-// 🎮 V20.0 Game Engine: 金融革命版
+// 🎮 V21.0 Game Engine (保留所有遊戲功能)
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('start-game-btn');
@@ -151,20 +209,17 @@ let enemies = [], particles = [], bullets = [], turrets = [], missiles = [], las
 let bossSpawned = false, animationFrameId, spawnInterval, autoWeaponInterval;
 let isMobile = window.innerWidth < 768;
 let shieldActive = false;
-
-// 🌟 新增 money (金幣挖礦)
 let shopItems = {
     damage: { baseCost: 100, level: 1, name: "火力" },
     blast:  { baseCost: 500, level: 1, name: "擴散" },
     drone:  { baseCost: 1000, level: 0, name: "無人機" },
-    money:  { baseCost: 2000, level: 0, name: "挖礦" }, // New
+    money:  { baseCost: 2000, level: 0, name: "挖礦" }, 
     laser:  { baseCost: 2500, level: 0, name: "雷射" },
     missile:{ baseCost: 3000, level: 0, name: "導彈" },
     lightning:{ baseCost: 4000, level: 0, name: "閃電" },
     regen:  { baseCost: 3000, level: 0, name: "修復" },
     crit:   { baseCost: 1500, level: 0, name: "暴擊" }
 };
-// 🌟 新增 goldMultiplier
 let stats = { damage: 20, blastRadius: 50, regenRate: 0, critChance: 0, goldMultiplier: 1.0 }; 
 
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; isMobile = window.innerWidth < 768; if (isMobile && stats.blastRadius < 100) stats.blastRadius = 100; }
@@ -303,6 +358,7 @@ function autoWeaponLogic() {
 
 function spawnLogic() {
     if (!gameRunning || gamePaused) return;
+    // 保底
     for(let i=0; i<3; i++) { enemies.push(new Enemy(0)); }
 
     let spawnChance = 0.2;
@@ -343,22 +399,15 @@ function gameLoop() {
         lasers.forEach(l => { l.update(); l.draw(); });
         lightnings.forEach((l, i) => { l.update(); l.draw(); if(l.life<=0) lightnings.splice(i,1); });
         bullets.forEach((b, i) => { b.update(); b.draw(); if (!b.active) bullets.splice(i, 1); });
-        
-        // 🌟 修正：殺怪賺錢邏輯
-        enemies.forEach((e, i) => { 
-            e.update(); e.draw(); 
-            if (e.hp <= 0) { 
-                score += e.scoreValue; 
-                let earnedGold = Math.ceil(e.scoreValue * stats.goldMultiplier);
-                gold += earnedGold; 
-                updateHud(); 
-                // 🌟 跳錢特效
-                showGameMsg(`+$${earnedGold}`, e.x, e.y, '#ffd700');
-                createParticles(e.x, e.y, e.color, 10); 
-                enemies.splice(i, 1); 
-            } 
-        });
-        
+        enemies.forEach((e, i) => { e.update(); e.draw(); if (e.hp <= 0) { 
+            score += e.scoreValue; 
+            // 🌟 金幣 = 分數 * 倍率
+            let earnedGold = Math.ceil(e.scoreValue * stats.goldMultiplier);
+            gold += earnedGold; 
+            updateHud(); 
+            showGameMsg(`+$${earnedGold}`, e.x, e.y, '#ffd700');
+            createParticles(e.x, e.y, e.color, 10); enemies.splice(i, 1); 
+        } });
         particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.05; if (p.life <= 0) particles.splice(i, 1); else { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.globalAlpha = 1.0; } });
     }
     animationFrameId = requestAnimationFrame(gameLoop);
@@ -410,7 +459,7 @@ window.buyItem = function(type) {
         if(type === 'damage') stats.damage += 10;
         if(type === 'blast') stats.blastRadius += 15;
         if(type === 'drone') turrets.push(new Turret(turrets.length));
-        if(type === 'money') stats.goldMultiplier += 0.5; // 🌟 升級金幣倍率
+        if(type === 'money') stats.goldMultiplier += 0.5; // 🌟
         if(type === 'laser') lasers.push(new Laser());
         if(type === 'lightning') {}
         if(type === 'missile') {} 
