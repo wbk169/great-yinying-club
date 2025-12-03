@@ -1,3 +1,4 @@
+/* --- 全局變數 --- */
 :root {
     --neon-cyan: #00f3ff;
     --neon-blue: #0066ff;
@@ -30,42 +31,48 @@ body.game-active { overflow: hidden; }
 .scroll-progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 10001; background: rgba(255, 255, 255, 0.1); }
 .scroll-progress-bar { height: 100%; width: 0%; background: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); transition: width 0.1s; }
 
-/* 🌟 V23.0 背景特效：蜂巢網格 */
+/* 🌟 V23.1 背景升級：全息球場 (加上壘包) */
 .bg-hexagons {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3;
-    /* 使用 CSS 繪製六角形紋理 */
     background-image: 
-        repeating-linear-gradient(0deg, transparent, transparent 29px, rgba(0, 243, 255, 0.03) 30px),
-        repeating-linear-gradient(60deg, transparent, transparent 29px, rgba(0, 243, 255, 0.03) 30px),
-        repeating-linear-gradient(-60deg, transparent, transparent 29px, rgba(0, 243, 255, 0.03) 30px);
+        repeating-linear-gradient(0deg, transparent, transparent 29px, rgba(0, 243, 255, 0.02) 30px),
+        repeating-linear-gradient(60deg, transparent, transparent 29px, rgba(0, 243, 255, 0.02) 30px),
+        repeating-linear-gradient(-60deg, transparent, transparent 29px, rgba(0, 243, 255, 0.02) 30px);
     background-size: 70px 122px;
 }
 
-/* 🌟 V23.0 背景特效：全息旋轉球場 */
 .bg-baseball-field {
     position: fixed; top: 50%; left: 50%; 
-    width: 80vh; height: 80vh;
+    width: 60vh; height: 60vh; /* 稍微縮小一點以免超出手機 */
     transform: translate(-50%, -50%);
-    z-index: -2; opacity: 0.15;
+    z-index: -2; opacity: 0.2;
     pointer-events: none;
 }
+/* 內野菱形線 */
 .bg-baseball-field::before {
     content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     border: 2px solid var(--neon-cyan);
-    transform: rotate(45deg); /* 菱形 */
+    transform: rotate(45deg); 
     box-shadow: 0 0 20px var(--neon-cyan), inset 0 0 20px var(--neon-cyan);
     animation: field-rotate 60s linear infinite;
 }
+/* 🌟 新增：四個壘包 (Bases) */
 .bg-baseball-field::after {
-    content: ''; position: absolute; top: 25%; left: 25%; width: 50%; height: 50%;
-    border: 1px dashed var(--neon-purple);
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    /* 利用漸層在四個角落畫出方塊(壘包) */
+    background: 
+        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) top left,
+        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) top right,
+        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) bottom left,
+        radial-gradient(square, var(--neon-purple) 5px, transparent 6px) bottom right;
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
     transform: rotate(45deg);
-    animation: field-rotate-rev 40s linear infinite;
+    animation: field-rotate 60s linear infinite; /* 跟著線條一起轉 */
 }
-@keyframes field-rotate { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
-@keyframes field-rotate-rev { from { transform: rotate(45deg); } to { transform: rotate(-315deg); } }
 
-/* 🌟 V23.0 背景特效：數位煙霧 */
+@keyframes field-rotate { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
+
 .bg-fog {
     position: fixed; bottom: 0; left: 0; width: 100%; height: 100%; z-index: -2;
     background: radial-gradient(circle at 50% 120%, rgba(0, 102, 255, 0.15), transparent 70%);
@@ -73,7 +80,7 @@ body.game-active { overflow: hidden; }
 }
 
 .scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.3; }
-.crosshair-line { position: fixed; background: var(--neon-cyan); opacity: 0.3; z-index: 9990; pointer-events: none; }
+.crosshair-line { position: fixed; background: var(--neon-cyan); opacity: 0.2; z-index: 9990; pointer-events: none; }
 .crosshair-x { top: 0; left: 0; width: 100vw; height: 1px; }
 .crosshair-y { top: 0; left: 0; width: 1px; height: 100vh; }
 
@@ -126,10 +133,36 @@ h2 { text-align: right; color: var(--neon-cyan); border-bottom: 1px solid var(--
 .score { color: #aaa; font-size: 0.9em; }
 
 footer { border-top: 1px solid var(--border-color); background: #000; padding: 40px; text-align: center; color: #444; }
-.cursor-dot { width: 6px; height: 6px; background: var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); opacity: 0; }
-.cursor-outline { width: 40px; height: 40px; border: 1px solid var(--neon-cyan); position: fixed; border-radius: 50%; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, background-color 0.2s; opacity: 0; }
 
-/* 能量條樣式 (V22) */
+/* 🌟 V23.1 棒球游標設定 */
+.cursor-dot { 
+    /* 移除背景色，改用 content */
+    width: auto; height: auto; background: none; 
+    position: fixed; z-index: 9999; pointer-events: none; 
+    transform: translate(-50%, -50%); opacity: 0;
+    font-size: 24px; /* 棒球大小 */
+}
+/* 透過 CSS 插入棒球 Emoji */
+.cursor-dot::after {
+    content: '⚾';
+    display: block;
+    /* 讓球會自轉，更帥氣 */
+    animation: ball-spin 2s linear infinite;
+}
+@keyframes ball-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* 🌟 好球帶方框 (取代原本的圓圈) */
+.cursor-outline { 
+    width: 50px; height: 60px; /* 長方形好球帶 */
+    border: 1px dashed var(--neon-cyan); /* 虛線 */
+    border-radius: 4px; 
+    position: fixed; z-index: 9999; pointer-events: none; 
+    transform: translate(-50%, -50%); 
+    transition: width 0.1s, height 0.1s, border-color 0.2s; 
+    opacity: 0; 
+}
+
+/* 能量條 (V22) */
 .power-bar-wrapper { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
 .power-bar-container { width: 120px; height: 6px; background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border-color); margin-top: 4px; position: relative; overflow: hidden; clip-path: polygon(0 0, 100% 0, 95% 100%, 0% 100%); }
 .power-bar-fill { height: 100%; background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan)); width: 0%; box-shadow: 0 0 8px var(--neon-cyan); position: relative; transition: width 1s cubic-bezier(0.22, 0.61, 0.36, 1); }
