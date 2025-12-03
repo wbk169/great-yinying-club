@@ -80,9 +80,7 @@ body.game-active { overflow: hidden; }
 }
 
 .scanlines { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; z-index: 9000; pointer-events: none; opacity: 0.3; }
-.crosshair-line { position: fixed; background: var(--neon-cyan); opacity: 0.2; z-index: 9990; pointer-events: none; }
-.crosshair-x { top: 0; left: 0; width: 100vw; height: 1px; }
-.crosshair-y { top: 0; left: 0; width: 1px; height: 100vh; }
+
 
 .sys-monitor { position: fixed; bottom: 10px; right: 10px; font-family: 'Consolas', monospace; font-size: 0.7em; color: var(--neon-cyan); text-align: right; z-index: 9997; pointer-events: none; line-height: 1.5; text-shadow: 0 0 5px var(--neon-cyan); border-right: 2px solid var(--neon-cyan); padding-right: 10px; }
 
