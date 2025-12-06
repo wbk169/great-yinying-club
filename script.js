@@ -274,3 +274,107 @@ async function loadRankings() {
 }
 
 loadRankings();
+
+// 您的試算表 ID
+const SHEET_ID = '1AguxDKT6wOHMcjIAGGbB37J91rn6IImgTt-OUqBa_GM';
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+
+  try {
+    // 取得第一個工作表
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
+    const data = e.parameter;
+
+    // 1. 🤖 機器人防禦 (Honeypot)
+    // 如果隱藏欄位有值，代表是機器人填的，假裝成功但不存檔
+    if (data.hp_check && data.hp_check.length > 0) {
+      return ContentService.createTextOutput(JSON.stringify({ result: 'success', msg: 'Bot detected' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 2. 📝 寫入資料
+    // 對應順序：帳號(A), 分數(B), 團(C), 備註(D), 時間(E)
+    sheet.appendRow([
+      data['entry.name'],           // 帳號名稱
+      data['entry.score'],          // 力量排名
+      data['entry.team'] || '',     // 目前所待團
+      data['entry.note'] || '',     // 備註
+      new Date()                    // 提交時間 (自動生成)
+    ]);
+
+    return ContentService.createTextOutput(JSON.stringify({ result: 'success' }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (e) {
+    return ContentService.createTextOutput(JSON.stringify({ result: 'error', error: e.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+// ==========================================
+// 📝 表單提交系統 (串接 Google Sheet)
+// ==========================================
+
+// ⚠️ 請將下方引號內的網址換成您剛剛部署得到的「網頁應用程式網址」
+const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyKu3g0YFJGt0_VWdm9h8pARWjpO0nTE5ko_oZYkHOJcUdmtN1reZgom86CLDJMP12yZA/exec';
+function initRankingFormSubmission() {
+    const form = document.getElementById('rankingForm');
+    const statusText = document.getElementById('form-status');
+
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault(); // 防止網頁跳轉
+        
+        const submitBtn = form.querySelector('.submit-btn');
+        const originalText = submitBtn.innerText;
+        
+        // 1. 鎖定按鈕，顯示處理中
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.innerText = "TRANSMITTING... (傳輸中)";
+        statusText.style.color = 'var(--neon-cyan)';
+        statusText.textContent = '狀態：正在建立加密連線...';
+
+        const formData = new FormData(form);
+
+        try {
+            // 2. 發送資料到 Google Script
+            await fetch(API_ENDPOINT, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors' // 跨域模式 (不會回傳詳細 JSON，只要沒報錯就算成功)
+            });
+
+            // 3. 成功處理
+            statusText.style.color = 'var(--neon-green)';
+            statusText.textContent = '狀態：上傳成功！[UPLOAD COMPLETE]';
+            submitBtn.innerText = "SUCCESS";
+
+            // 2秒後重置表單
+            setTimeout(() => {
+                form.reset();
+                statusText.textContent = '狀態：等待輸入...';
+                statusText.style.color = '#888';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.innerText = originalText;
+            }, 2000);
+
+        } catch (error) {
+            // 4. 失敗處理
+            console.error('Submission Error:', error);
+            statusText.style.color = 'var(--neon-red)';
+            statusText.textContent = '狀態：連線失敗 [CONNECTION FAILED]';
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.innerText = originalText;
+        }
+    });
+}
+
+// 啟動表單監聽功能
+initRankingFormSubmission();
