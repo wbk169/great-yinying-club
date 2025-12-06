@@ -11,7 +11,7 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
-// 🌟 您的 Google Apps Script 網址
+// 🌟 您的 Google Apps Script 網址 (請確認是否正確)
 const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyKu3g0YFJGt0_VWdm9h8pARWjpO0nTE5ko_oZYkHOJcUdmtN1reZgom86CLDJMP12yZA/exec'; 
 
 // ==========================================
@@ -136,14 +136,15 @@ function updateSysMonitor() {
 }
 setInterval(updateSysMonitor, 1000);
 
-// 開場動畫
+// 🌟 V36.0 開場動畫
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     const stamp = document.querySelector('.access-stamp');
     document.querySelectorAll('.crosshair-line').forEach(el => el.remove());
     if (!textElement || !bootScreen) return;
-    const logs = ["INITIALIZING...", "LOADING KERNEL...", "CONNECTING DB...", "VERIFYING CREDENTIALS...", "ACCESS GRANTED."];
+    document.body.classList.add('locked');
+    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", "SYSTEM ONLINE."];
     let lineIndex = 0;
     function typeLine() {
         if (lineIndex < logs.length) {
@@ -159,6 +160,7 @@ function runBootSequence() {
                         document.body.classList.add('line-active');
                         setTimeout(() => {
                             document.body.classList.add('loaded'); 
+                            document.body.classList.remove('locked'); 
                             setTimeout(() => { 
                                 bootScreen.style.display = 'none'; 
                                 document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
@@ -176,7 +178,7 @@ function runBootSequence() {
             document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
             document.body.classList.remove('locked');
         }
-    }, 4000);
+    }, 5000);
 }
 
 function initCursor() {
@@ -234,61 +236,38 @@ function renderRow(container, player, rank) {
 function initRankingFormSubmission() {
     const form = document.getElementById('rankingForm');
     const statusText = document.getElementById('form-status');
-
     if (!form) return;
-
     form.addEventListener('submit', async function(e) {
         e.preventDefault(); 
-        
         const submitBtn = form.querySelector('.submit-btn');
         const originalText = submitBtn.innerText;
-        
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.5';
-        submitBtn.innerText = "TRANSMITTING... (傳輸中)";
-        statusText.style.color = 'var(--neon-cyan)';
-        statusText.textContent = '狀態：正在建立加密連線...';
-
+        submitBtn.disabled = true; submitBtn.style.opacity = '0.5'; submitBtn.innerText = "TRANSMITTING... (傳輸中)";
+        statusText.style.color = 'var(--neon-cyan)'; statusText.textContent = '狀態：正在建立加密連線...';
         const formData = new FormData(form);
-
         try {
-            await fetch(API_ENDPOINT, {
-                method: 'POST',
-                body: formData,
-                mode: 'no-cors' 
-            });
-
-            statusText.style.color = 'var(--neon-green)';
-            statusText.textContent = '狀態：上傳成功！[UPLOAD COMPLETE]';
+            await fetch(API_ENDPOINT, { method: 'POST', body: formData, mode: 'no-cors' });
+            statusText.style.color = 'var(--neon-green)'; statusText.textContent = '狀態：上傳成功！[UPLOAD COMPLETE]';
             submitBtn.innerText = "SUCCESS";
-
             setTimeout(() => {
-                form.reset();
-                statusText.textContent = '狀態：等待輸入...';
-                statusText.style.color = '#888';
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.innerText = originalText;
+                form.reset(); statusText.textContent = '狀態：等待輸入...'; statusText.style.color = '#888';
+                submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.innerText = originalText;
             }, 2000);
-
         } catch (error) {
             console.error('Submission Error:', error);
-            statusText.style.color = 'var(--neon-red)';
-            statusText.textContent = '狀態：連線失敗 [CONNECTION FAILED]';
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = '1';
-            submitBtn.innerText = originalText;
+            statusText.style.color = 'var(--neon-red)'; statusText.textContent = '狀態：連線失敗 [CONNECTION FAILED]';
+            submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.innerText = originalText;
         }
     });
 }
 
 async function loadRankings() {
-    window.onload = () => {
+    // 🌟 修正：確保網頁讀取完畢後才執行，避免卡死在黑畫面
+    document.addEventListener("DOMContentLoaded", () => {
         runBootSequence();
         initCursor(); updateSysMonitor(); initParticles(); initSearch();
-        initRankingFormSubmission(); // 🌟 啟動表單監聽
+        initRankingFormSubmission();
         setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
-    };
+    });
 
     try {
         const response = await fetch(CSV_FILE_PATH); const csvText = await response.text(); const rows = csvText.trim().split('\n').slice(1);
@@ -327,4 +306,5 @@ async function loadRankings() {
     }
 }
 
-loadRankings();
+// 移除底部的直接呼叫，改由 DOMContentLoaded 觸發
+// loadRankings();
