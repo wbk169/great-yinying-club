@@ -11,22 +11,27 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
-// 🌟 您的 Google Apps Script 網址 (請確認是否正確)
+// 🌟 您的 Google Apps Script 網址
 const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyKu3g0YFJGt0_VWdm9h8pARWjpO0nTE5ko_oZYkHOJcUdmtN1reZgom86CLDJMP12yZA/exec'; 
 
 // ==========================================
 // 2. 網站視覺特效
 // ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+
 function hackEffect(element) {
-    let iterations = 0; const originalText = element.dataset.value || element.innerText; 
+    let iterations = 0;
+    const originalText = element.dataset.value || element.innerText; 
     if(!element.dataset.value) element.dataset.value = originalText;
+
     const interval = setInterval(() => {
         element.innerText = originalText.split("").map((letter, index) => {
             if(index < iterations) return originalText[index];
             return letters[Math.floor(Math.random() * 43)];
         }).join("");
-        if(iterations >= originalText.length) clearInterval(interval); iterations += 1 / 2; 
+        
+        if(iterations >= originalText.length) clearInterval(interval);
+        iterations += 1 / 2; 
     }, 30);
 }
 
@@ -109,6 +114,8 @@ function initScrollEffects() {
     titles.forEach(title => titleObserver.observe(title));
     const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('reveal-active'); sectionObserver.unobserve(entry.target); } }); }, { threshold: 0.1 });
     sections.forEach(section => sectionObserver.observe(section));
+
+    // 導航點擊
     document.querySelectorAll('.nav-item').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -121,6 +128,7 @@ function initScrollEffects() {
             }
         });
     });
+
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -136,26 +144,37 @@ function updateSysMonitor() {
 }
 setInterval(updateSysMonitor, 1000);
 
-// 🌟 V36.0 開場動畫
+// 開場動畫
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     const stamp = document.querySelector('.access-stamp');
+    
+    // 強制移除可能殘留的舊元素
     document.querySelectorAll('.crosshair-line').forEach(el => el.remove());
+    if(document.getElementById('game-canvas')) document.getElementById('game-canvas').remove();
+
     if (!textElement || !bootScreen) return;
     document.body.classList.add('locked');
-    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "VERIFYING CLUB CREDENTIALS [大陰帝國]...", "SYSTEM ONLINE."];
+    
+    const logs = ["INITIALIZING SYSTEM...", "LOADING KERNEL MODULES...", "CONNECTING TO MLB DATABASE...", "TARGET FOUND: [ 大陰帝國 ]", "ACCESS GRANTED."];
     let lineIndex = 0;
+    
     function typeLine() {
         if (lineIndex < logs.length) {
             const line = document.createElement('div'); line.textContent = `> ${logs[lineIndex]}`;
             textElement.appendChild(line); lineIndex++; setTimeout(typeLine, 80); 
         } else {
+            // 文字跑完 -> 顯示印章
             setTimeout(() => {
                 textElement.style.opacity = 0; 
                 if(stamp) stamp.classList.add('stamp-visible');
+                
+                // 印章停留 -> 消失 -> 開門
                 setTimeout(() => {
                     if(stamp) { stamp.classList.remove('stamp-visible'); stamp.classList.add('fade-out'); }
+                    
+                    // 藍線亮起 -> 閘門開啟
                     setTimeout(() => {
                         document.body.classList.add('line-active');
                         setTimeout(() => {
@@ -172,11 +191,14 @@ function runBootSequence() {
         }
     }
     typeLine();
+
+    // 雙重保險
     setTimeout(() => {
-        if(document.getElementById('boot-screen')) {
+        if(document.getElementById('boot-screen') && document.getElementById('boot-screen').style.display !== 'none') {
+            document.body.classList.add('loaded');
+            document.body.classList.remove('locked');
             document.getElementById('boot-screen').style.display = 'none';
             document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
-            document.body.classList.remove('locked');
         }
     }, 5000);
 }
@@ -232,7 +254,7 @@ function renderRow(container, player, rank) {
     container.appendChild(tr);
 }
 
-// 🌟 V35.0 表單提交監聽器
+// 表單監聽
 function initRankingFormSubmission() {
     const form = document.getElementById('rankingForm');
     const statusText = document.getElementById('form-status');
@@ -260,15 +282,8 @@ function initRankingFormSubmission() {
     });
 }
 
+// 🌟 核心：正確的啟動順序
 async function loadRankings() {
-    // 🌟 修正：確保網頁讀取完畢後才執行，避免卡死在黑畫面
-    document.addEventListener("DOMContentLoaded", () => {
-        runBootSequence();
-        initCursor(); updateSysMonitor(); initParticles(); initSearch();
-        initRankingFormSubmission();
-        setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
-    });
-
     try {
         const response = await fetch(CSV_FILE_PATH); const csvText = await response.text(); const rows = csvText.trim().split('\n').slice(1);
         let waitingList = [], demotedList = [], leaderData = null;     
@@ -302,9 +317,22 @@ async function loadRankings() {
         if(dateEl) dateEl.textContent = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
     } catch (error) { 
         console.error('讀取數據失敗:', error); 
-        if(document.getElementById('boot-screen')) document.getElementById('boot-screen').style.display = 'none'; 
     }
 }
 
-// 移除底部的直接呼叫，改由 DOMContentLoaded 觸發
-// loadRankings();
+// 🌟 確保在網頁載入後，才觸發一切
+document.addEventListener("DOMContentLoaded", () => {
+    runBootSequence();          // 1. 跑開機動畫 (會先鎖住畫面)
+    initCursor();               // 2. 初始化游標
+    initParticles();            // 3. 初始化背景
+    initSearch();               // 4. 初始化搜尋
+    updateSysMonitor();         // 5. 初始化數據監控
+    initRankingFormSubmission();// 6. 初始化表單
+    loadRankings();             // 7. 載入並渲染排名
+    
+    // 延遲載入次要特效，確保順暢
+    setTimeout(() => { 
+        initScrollEffects(); 
+        initMagnetic(); 
+    }, 500);
+});
