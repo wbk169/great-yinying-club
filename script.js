@@ -1,4 +1,6 @@
-// 設定檔案路徑
+// ==========================================
+// 1. 設定與變數定義
+// ==========================================
 const CSV_FILE_PATH = 'rankings.csv';
 const NPC_LIST = { 1: [], 2: [], 3: ['未入團強力路人1', '未入團強力路人2'], 4: ['未入團強力路人5'], 5: [] };
 const TEAM_CONFIG = {
@@ -9,6 +11,12 @@ const TEAM_CONFIG = {
     5: { name: '大陰帝國-天龍特攻隊', id: 'team5-body', theme: 'tier-5-theme' }
 };
 
+// 🌟 您的 Google Apps Script 網址
+const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyKu3g0YFJGt0_VWdm9h8pARWjpO0nTE5ko_oZYkHOJcUdmtN1reZgom86CLDJMP12yZA/exec'; 
+
+// ==========================================
+// 2. 網站視覺特效
+// ==========================================
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
 function hackEffect(element) {
     let iterations = 0; const originalText = element.dataset.value || element.innerText; 
@@ -54,6 +62,7 @@ function initParticles() {
     resize(); animate();
 }
 
+// 搜尋功能
 function initSearch() {
     const input = document.getElementById('search-input');
     if (!input) return;
@@ -69,6 +78,7 @@ function initSearch() {
     });
 }
 
+// 點擊特效
 function createClickRipple(e) {
     if(document.body.classList.contains('simple-mode')) return;
     const ripple = document.createElement('div'); ripple.className = 'click-ripple';
@@ -99,6 +109,18 @@ function initScrollEffects() {
     titles.forEach(title => titleObserver.observe(title));
     const sectionObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('reveal-active'); sectionObserver.unobserve(entry.target); } }); }, { threshold: 0.1 });
     sections.forEach(section => sectionObserver.observe(section));
+    document.querySelectorAll('.nav-item').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').substring(1);
+            const section = document.getElementById(targetId);
+            if(section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                section.classList.add('flash-active');
+                setTimeout(() => section.classList.remove('flash-active'), 800);
+            }
+        });
+    });
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -114,63 +136,42 @@ function updateSysMonitor() {
 }
 setInterval(updateSysMonitor, 1000);
 
-// 🌟 V33.0 開場動畫 (極速版)
+// 開場動畫
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
     const stamp = document.querySelector('.access-stamp');
-    
-    // 保險：強制移除殘留的十字線
     document.querySelectorAll('.crosshair-line').forEach(el => el.remove());
-
     if (!textElement || !bootScreen) return;
-
-    const logs = [
-        "INITIALIZING SYSTEM...", 
-        "LOADING KERNEL...", 
-        "CONNECTING TO MLB DATABASE...", 
-        "TARGET FOUND: [ 大陰帝國 ]", // 🌟 把它獨立出來，加括號更帥
-        "ACCESS GRANTED."
-    ];    let lineIndex = 0;
-    
+    const logs = ["INITIALIZING...", "LOADING KERNEL...", "CONNECTING DB...", "VERIFYING CREDENTIALS...", "ACCESS GRANTED."];
+    let lineIndex = 0;
     function typeLine() {
         if (lineIndex < logs.length) {
             const line = document.createElement('div'); line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line); lineIndex++; setTimeout(typeLine, 80); // 打字速度
+            textElement.appendChild(line); lineIndex++; setTimeout(typeLine, 80); 
         } else {
             setTimeout(() => {
                 textElement.style.opacity = 0; 
                 if(stamp) stamp.classList.add('stamp-visible');
-                
                 setTimeout(() => {
                     if(stamp) { stamp.classList.remove('stamp-visible'); stamp.classList.add('fade-out'); }
-
-                    // 🌟 修改這裡：從 600ms 縮短為 100ms
                     setTimeout(() => {
-                        // 亮起藍線
                         document.body.classList.add('line-active');
-                        
-                        // 0.3秒後打開閘門 (保持這個節奏，因為要有亮線的瞬間)
                         setTimeout(() => {
                             document.body.classList.add('loaded'); 
-                            document.body.classList.remove('locked'); 
-                            
                             setTimeout(() => { 
                                 bootScreen.style.display = 'none'; 
                                 document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
                             }, 1000);
                         }, 300);
-
-                    }, 100); // ⚡ 這裡縮短了！印章一淡出馬上接藍線
+                    }, 100); 
                 }, 1500); 
             }, 300);
         }
     }
     typeLine();
-    
     setTimeout(() => {
         if(document.getElementById('boot-screen')) {
-            console.log("Force clearing boot screen...");
             document.getElementById('boot-screen').style.display = 'none';
             document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
             document.body.classList.remove('locked');
@@ -229,10 +230,63 @@ function renderRow(container, player, rank) {
     container.appendChild(tr);
 }
 
+// 🌟 V35.0 表單提交監聽器
+function initRankingFormSubmission() {
+    const form = document.getElementById('rankingForm');
+    const statusText = document.getElementById('form-status');
+
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault(); 
+        
+        const submitBtn = form.querySelector('.submit-btn');
+        const originalText = submitBtn.innerText;
+        
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+        submitBtn.innerText = "TRANSMITTING... (傳輸中)";
+        statusText.style.color = 'var(--neon-cyan)';
+        statusText.textContent = '狀態：正在建立加密連線...';
+
+        const formData = new FormData(form);
+
+        try {
+            await fetch(API_ENDPOINT, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors' 
+            });
+
+            statusText.style.color = 'var(--neon-green)';
+            statusText.textContent = '狀態：上傳成功！[UPLOAD COMPLETE]';
+            submitBtn.innerText = "SUCCESS";
+
+            setTimeout(() => {
+                form.reset();
+                statusText.textContent = '狀態：等待輸入...';
+                statusText.style.color = '#888';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.innerText = originalText;
+            }, 2000);
+
+        } catch (error) {
+            console.error('Submission Error:', error);
+            statusText.style.color = 'var(--neon-red)';
+            statusText.textContent = '狀態：連線失敗 [CONNECTION FAILED]';
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.innerText = originalText;
+        }
+    });
+}
+
 async function loadRankings() {
     window.onload = () => {
         runBootSequence();
         initCursor(); updateSysMonitor(); initParticles(); initSearch();
+        initRankingFormSubmission(); // 🌟 啟動表單監聽
         setTimeout(() => { initScrollEffects(); initMagnetic(); }, 100);
     };
 
@@ -274,107 +328,3 @@ async function loadRankings() {
 }
 
 loadRankings();
-
-// 您的試算表 ID
-const SHEET_ID = '1AguxDKT6wOHMcjIAGGbB37J91rn6IImgTt-OUqBa_GM';
-
-function doPost(e) {
-  const lock = LockService.getScriptLock();
-  lock.tryLock(10000);
-
-  try {
-    // 取得第一個工作表
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheets()[0];
-    const data = e.parameter;
-
-    // 1. 🤖 機器人防禦 (Honeypot)
-    // 如果隱藏欄位有值，代表是機器人填的，假裝成功但不存檔
-    if (data.hp_check && data.hp_check.length > 0) {
-      return ContentService.createTextOutput(JSON.stringify({ result: 'success', msg: 'Bot detected' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    // 2. 📝 寫入資料
-    // 對應順序：帳號(A), 分數(B), 團(C), 備註(D), 時間(E)
-    sheet.appendRow([
-      data['entry.name'],           // 帳號名稱
-      data['entry.score'],          // 力量排名
-      data['entry.team'] || '',     // 目前所待團
-      data['entry.note'] || '',     // 備註
-      new Date()                    // 提交時間 (自動生成)
-    ]);
-
-    return ContentService.createTextOutput(JSON.stringify({ result: 'success' }))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch (e) {
-    return ContentService.createTextOutput(JSON.stringify({ result: 'error', error: e.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
-  }
-}
-// ==========================================
-// 📝 表單提交系統 (串接 Google Sheet)
-// ==========================================
-
-// ⚠️ 請將下方引號內的網址換成您剛剛部署得到的「網頁應用程式網址」
-const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyKu3g0YFJGt0_VWdm9h8pARWjpO0nTE5ko_oZYkHOJcUdmtN1reZgom86CLDJMP12yZA/exec';
-function initRankingFormSubmission() {
-    const form = document.getElementById('rankingForm');
-    const statusText = document.getElementById('form-status');
-
-    if (!form) return;
-
-    form.addEventListener('submit', async function(e) {
-        e.preventDefault(); // 防止網頁跳轉
-        
-        const submitBtn = form.querySelector('.submit-btn');
-        const originalText = submitBtn.innerText;
-        
-        // 1. 鎖定按鈕，顯示處理中
-        submitBtn.disabled = true;
-        submitBtn.style.opacity = '0.5';
-        submitBtn.innerText = "TRANSMITTING... (傳輸中)";
-        statusText.style.color = 'var(--neon-cyan)';
-        statusText.textContent = '狀態：正在建立加密連線...';
-
-        const formData = new FormData(form);
-
-        try {
-            // 2. 發送資料到 Google Script
-            await fetch(API_ENDPOINT, {
-                method: 'POST',
-                body: formData,
-                mode: 'no-cors' // 跨域模式 (不會回傳詳細 JSON，只要沒報錯就算成功)
-            });
-
-            // 3. 成功處理
-            statusText.style.color = 'var(--neon-green)';
-            statusText.textContent = '狀態：上傳成功！[UPLOAD COMPLETE]';
-            submitBtn.innerText = "SUCCESS";
-
-            // 2秒後重置表單
-            setTimeout(() => {
-                form.reset();
-                statusText.textContent = '狀態：等待輸入...';
-                statusText.style.color = '#888';
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
-                submitBtn.innerText = originalText;
-            }, 2000);
-
-        } catch (error) {
-            // 4. 失敗處理
-            console.error('Submission Error:', error);
-            statusText.style.color = 'var(--neon-red)';
-            statusText.textContent = '狀態：連線失敗 [CONNECTION FAILED]';
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = '1';
-            submitBtn.innerText = originalText;
-        }
-    });
-}
-
-// 啟動表單監聽功能
-initRankingFormSubmission();

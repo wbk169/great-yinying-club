@@ -1,5 +1,5 @@
 /* =========================================
-   🌟 V31.0 大陰帝國俱樂部 - 完美開場版
+   🌟 V35.0 大陰帝國俱樂部 - 完整整合版
    ========================================= */
 
 /* --- 全局變數 --- */
@@ -26,8 +26,7 @@ body {
     touch-action: manipulation;
     user-select: none; -webkit-user-select: none;
 }
-body.game-active { overflow: hidden; } 
-@media (pointer: fine) { body:not(.simple-mode) { cursor: none; } }
+body.locked { overflow: hidden; } /* 開場鎖定 */
 
 /* 簡化模式 */
 body.simple-mode .bg-particles,
@@ -38,6 +37,8 @@ body.simple-mode .cursor-outline,
 body.simple-mode .click-ripple { display: none !important; }
 body.simple-mode { cursor: auto; } 
 body.simple-mode .ranking-table tbody tr:hover { text-shadow: none !important; transform: translateX(5px) !important; }
+
+@media (pointer: fine) { body:not(.simple-mode) { cursor: none; } }
 
 /* 捲軸 */
 ::-webkit-scrollbar { width: 6px; }
@@ -125,6 +126,7 @@ header {
 
 main { max-width: 1300px; margin: 40px auto; padding: 0 30px; }
 
+/* 搜尋框 */
 .search-container { position: relative; max-width: 600px; margin: 0 auto 40px auto; background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-color); padding: 10px 20px; display: flex; align-items: center; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
 .search-icon { font-size: 1.2em; margin-right: 10px; filter: grayscale(1); }
 #search-input { background: transparent; border: none; color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 1.2em; width: 100%; outline: none; letter-spacing: 1px; }
@@ -220,34 +222,76 @@ footer { border-top: 1px solid var(--border-color); background: #000; padding: 4
 @keyframes ball-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 .cursor-outline { width: 50px; height: 60px; border: 1px dashed var(--neon-cyan); background: linear-gradient(to right, var(--neon-cyan) 2px, transparent 2px) 0 0, linear-gradient(to bottom, var(--neon-cyan) 2px, transparent 2px) 0 0, linear-gradient(to left, var(--neon-cyan) 2px, transparent 2px) 100% 0, linear-gradient(to bottom, var(--neon-cyan) 2px, transparent 2px) 100% 0, linear-gradient(to right, var(--neon-cyan) 2px, transparent 2px) 0 100%, linear-gradient(to top, var(--neon-cyan) 2px, transparent 2px) 0 100%, linear-gradient(to left, var(--neon-cyan) 2px, transparent 2px) 100% 100%, linear-gradient(to top, var(--neon-cyan) 2px, transparent 2px) 100% 100%; background-repeat: no-repeat; background-size: 10px 10px; position: fixed; border-radius: 4px; z-index: 9999; pointer-events: none; transform: translate(-50%, -50%); transition: width 0.1s, height 0.1s, border-color 0.2s; opacity: 0; filter: drop-shadow(0 0 5px var(--neon-cyan)); }
 
-/* 🌟 V31.0 修正：預設隱藏藍線 (透明)，直到 loaded 才顯示 */
+/* 開場閘門特效 */
 .shutter-gate {
     position: fixed; left: 0; width: 100%; height: 50vh;
     background: #050505; z-index: 10001;
     transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
 }
-/* 預設透明邊框 */
 .shutter-top { top: 0; border-bottom: 2px solid transparent; transform-origin: top; }
 .shutter-bottom { bottom: 0; border-top: 2px solid transparent; transform-origin: bottom; }
-
-/* 開啟瞬間變色 */
+/* 開啟時變藍色 */
 body.line-active .shutter-top { border-bottom-color: var(--neon-cyan); }
 body.line-active .shutter-bottom { border-top-color: var(--neon-cyan); }
-
-/* 開啟後位移 */
+/* 開啟動作 */
 body.loaded .shutter-top { transform: translateY(-100%); }
 body.loaded .shutter-bottom { transform: translateY(100%); }
 
+/* 開機畫面文字 */
 #boot-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: transparent; z-index: 10005; display: flex; align-items: center; justify-content: center; pointer-events: none; }
 #terminal-text { width: 100%; max-width: 600px; font-family: 'Consolas', monospace; color: var(--neon-cyan); font-size: 1.2em; line-height: 1.5; white-space: pre-wrap; padding: 20px; transition: opacity 0.5s; }
+
+/* 權限印章 */
 .access-stamp { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); border: 5px solid var(--neon-green); color: var(--neon-green); font-size: 4em; font-weight: bold; padding: 20px 40px; z-index: 10003; opacity: 0; text-shadow: 0 0 20px var(--neon-green); box-shadow: 0 0 30px var(--neon-green), inset 0 0 30px var(--neon-green); transform: translate(-50%, -50%) rotate(-10deg) scale(3); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .access-stamp.stamp-visible { opacity: 1; transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
 .access-stamp.fade-out { opacity: 0; transform: translate(-50%, -50%) scale(1.2); transition: all 0.5s ease-out; }
 .blink-cursor::after { content: '█'; animation: blink 0.8s infinite; margin-left: 5px; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+/* 🌟 表單樣式 */
+.submission-form-section {
+    max-width: 600px; margin: 40px auto; padding: 30px;
+    background: var(--panel-bg);
+    border: 1px solid var(--neon-purple);
+    box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
+    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+    font-family: 'Consolas', monospace;
+    position: relative;
+}
+.submission-form-section::before {
+    content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-purple), transparent);
+}
+.submission-form-section h3 { color: var(--neon-cyan); font-size: 1.5em; text-shadow: 0 0 8px var(--neon-cyan); border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-top: 0; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 5px; color: #ccc; font-weight: bold; font-size: 0.9em; letter-spacing: 1px; }
+.form-group input, .form-group select {
+    width: 100%; padding: 12px; background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--border-color); color: var(--neon-green);
+    box-shadow: 0 0 5px rgba(0, 255, 127, 0.2);
+    font-family: 'Consolas', monospace; font-size: 1.1em; outline: none; transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+.form-group input:focus, .form-group select:focus {
+    border-color: var(--neon-cyan);
+    box-shadow: 0 0 10px var(--neon-cyan);
+    background: rgba(0, 20, 40, 0.8);
+}
+.submit-btn {
+    width: 100%; padding: 15px;
+    background: var(--neon-purple); color: #fff;
+    border: none; cursor: pointer; transition: 0.3s; font-weight: bold;
+    box-shadow: 0 0 10px var(--neon-purple);
+    font-family: 'Rajdhani', sans-serif; font-size: 1.2em; letter-spacing: 2px;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.submit-btn:hover { background: #d500f9; box-shadow: 0 0 20px var(--neon-purple); transform: translateY(-2px); }
+.submit-btn:active { transform: scale(0.98); }
+.status-text { margin-top: 15px; color: #888; text-align: center; font-family: 'Consolas', monospace; font-size: 0.9em; }
+.honeypot { opacity: 0; position: absolute; top: 0; left: 0; height: 0; width: 0; z-index: -1; }
+
 @media (max-width: 768px) {
-    .hud-corner, .cursor-dot, .cursor-outline, .sys-monitor { display: none; } 
+    .hud-corner, .cursor-dot, .cursor-outline, .sys-monitor, .crosshair-line { display: none; } 
     .cyber-glitch { font-size: 3em; letter-spacing: 5px; } 
     h1 { font-size: 2.5em; white-space: normal; }
     h2 { text-align: left; font-size: 1.3em; }
@@ -264,35 +308,19 @@ body.loaded .shutter-bottom { transform: translateY(100%); }
     .mode-switch { top: 10px; right: 10px; }
     .nav-bar { flex-wrap: wrap; gap: 10px; }
     .access-stamp { font-size: 2em; padding: 10px 20px; }
+    .submission-form-section { margin: 20px; padding: 20px; width: auto; }
 }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
     .bg-hexagons { opacity: 1; }
     .team-section { opacity: 1; transform: none; }
-}.submission-form-section {
-    max-width: 600px; margin: 40px auto; padding: 30px;
-    background: var(--panel-bg);
-    border: 1px solid var(--neon-purple);
-    box-shadow: 0 0 15px rgba(188, 19, 254, 0.4);
-    clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-    font-family: 'Consolas', monospace;
 }
-.submission-form-section h3 { color: var(--neon-cyan); font-size: 1.5em; text-shadow: 0 0 8px var(--neon-cyan); }
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; margin-bottom: 5px; color: #fff; font-weight: bold; }
-.form-group input, .form-group select, .form-group textarea {
-    width: 100%; padding: 10px; background: rgba(0, 0, 0, 0.6);
-    border: 1px solid var(--border-color); color: var(--neon-green);
-    box-shadow: 0 0 5px rgba(0, 255, 127, 0.2);
-    font-size: 1.1em; outline: none; transition: border-color 0.3s;
-}
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--neon-cyan);
-    box-shadow: 0 0 10px var(--neon-cyan);
-}
-.submit-btn { /* 您的原有按鈕樣式 */
-    background: var(--neon-purple); color: #fff; padding: 10px 20px;
-    border: none; cursor: pointer; transition: 0.3s; font-weight: bold;
-    box-shadow: 0 0 10px var(--neon-purple);
-}
-.status-text { margin-top: 15px; color: var(--neon-gold); }
+
+/* 🌟 V32.0 緊急修復：CSS 自動開啟保險 */
+@keyframes force-open-top { 0%, 70% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
+@keyframes force-open-bottom { 0%, 70% { transform: translateY(0); } 100% { transform: translateY(100%); } }
+@keyframes force-hide-overlay { 0%, 80% { opacity: 1; z-index: 10000; } 100% { opacity: 0; z-index: -1; } }
+
+.shutter-top { animation: force-open-top 4s cubic-bezier(0.7, 0, 0.3, 1) forwards; }
+.shutter-bottom { animation: force-open-bottom 4s cubic-bezier(0.7, 0, 0.3, 1) forwards; }
+#boot-screen { animation: force-hide-overlay 4.5s ease-out forwards; }

@@ -63,6 +63,47 @@
             <div class="search-line"></div>
         </div>
 
+        <section class="submission-form-section">
+            <h3>⚡ 戰力數據上傳終端</h3>
+            <form id="rankingForm">
+                
+                <div class="form-group">
+                    <label>AGENT NAME (帳號名稱)</label>
+                    <input type="text" name="entry.name" placeholder="輸入遊戲ID..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>POWER LEVEL (力量排名分數)</label>
+                    <input type="number" name="entry.score" placeholder="例如: 1200" required>
+                </div>
+
+                <div class="form-group">
+                    <label>SQUAD (所屬分團)</label>
+                    <select name="entry.team">
+                        <option value="一團">一團 | 大陰帝國</option>
+                        <option value="二團">二團 | 稽查菊</option>
+                        <option value="三團">三團 | 手入與支出</option>
+                        <option value="四團">四團 | 抽查桃稅</option>
+                        <option value="五團">五團 | 天龍特攻隊</option>
+                        <option value="未定/新血" selected>未定 / 新進人員</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>NOTE (備註：如自願降團/新血)</label>
+                    <input type="text" name="entry.note" placeholder="選填...">
+                </div>
+
+                <div class="form-group honeypot" aria-hidden="true">
+                    <label for="hp-field">機器人檢查</label>
+                    <input type="text" id="hp-field" name="hp_check" tabindex="-1" autocomplete="off">
+                </div>
+
+                <button type="submit" class="submit-btn">UPLOAD DATA (上傳數據)</button>
+                <div id="form-status" class="status-text">狀態：等待輸入...</div>
+            </form>
+        </section>
+
         <h2>戰力排名總覽 | 更新日期：<span id="update-date">載入中...</span></h2>
         
         <section class="team-section" id="team1">
@@ -104,10 +145,7 @@
                 <tbody id="team5-body"></tbody>
             </table>
         </section>
-        <div class="form-group honeypot" aria-hidden="true">
-            <label for="hp-field">機器人檢查</label>
-            <input type="text" id="hp-field" name="hp_check" tabindex="-1" autocomplete="off">
-        </div>  
+
         <div class="legend-panel">
             <div class="legend-item"><span class="legend-icon">🏆</span>團長</div>
             <div class="legend-item"><span class="legend-icon">🤖</span>強力 NPC</div>
@@ -124,7 +162,7 @@
 
     <footer>
         <p>&copy; 2025 大陰帝國俱樂部 | Designed for Victory</p>
-        <span class="version-tag">UI BUILD V28.0 // STABLE</span>
+        <span class="version-tag">UI BUILD V35.0 // STABLE</span>
     </footer>
 </body>
 </html>
