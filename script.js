@@ -334,5 +334,5 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => { 
         initScrollEffects(); 
         initMagnetic(); 
-    }, 500);
+    }, 50);
 });
