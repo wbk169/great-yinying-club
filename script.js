@@ -12,7 +12,7 @@ const TEAM_CONFIG = {
 };
 
 // 🌟 您的 Google Apps Script 網址
-const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxVxhO-P1XQ4QfUwxJPYAzDGtfaZKqRc6vLV2SrPvBlRv9j3sdykMG5L3ZdrUe5HAre/exec';
+const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyZv_4qt5WYL5WQ02ldKHl0hFdPyp4vFxU1xB9uAvrxo-uMlYjE0OmU3HmasTdq6cHkZQ/exec';
 // ==========================================
 // 2. 網站視覺特效
 // ==========================================
