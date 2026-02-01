@@ -147,12 +147,7 @@ setInterval(updateSysMonitor, 1000);
 function runBootSequence() {
     const textElement = document.getElementById('terminal-text');
     const bootScreen = document.getElementById('boot-screen');
-    const stamp = document.querySelector('.access-stamp');
     
-    // 強制移除可能殘留的舊元素
-    document.querySelectorAll('.crosshair-line').forEach(el => el.remove());
-    if(document.getElementById('game-canvas')) document.getElementById('game-canvas').remove();
-
     if (!textElement || !bootScreen) return;
     document.body.classList.add('locked');
     
@@ -161,45 +156,33 @@ function runBootSequence() {
     
     function typeLine() {
         if (lineIndex < logs.length) {
-            const line = document.createElement('div'); line.textContent = `> ${logs[lineIndex]}`;
-            textElement.appendChild(line); lineIndex++; setTimeout(typeLine, 80); 
+            const line = document.createElement('div'); 
+            line.textContent = `> ${logs[lineIndex]}`;
+            textElement.appendChild(line); 
+            lineIndex++; 
+            setTimeout(typeLine, 60); // 縮短打字速度
         } else {
-            // 文字跑完 -> 顯示印章
+            // 文字跑完後，立即觸發亮線與開門
             setTimeout(() => {
                 textElement.style.opacity = 0; 
-                if(stamp) stamp.classList.add('stamp-visible');
+                // 立即啟動亮線特效
+                document.body.classList.add('line-active');
                 
-                // 印章停留 -> 消失 -> 開門
+                // 亮線後 200ms 直接開門，不要等 1.5 秒
                 setTimeout(() => {
-                    if(stamp) { stamp.classList.remove('stamp-visible'); stamp.classList.add('fade-out'); }
+                    document.body.classList.add('loaded'); 
+                    document.body.classList.remove('locked'); 
                     
-                    // 藍線亮起 -> 閘門開啟
-                    setTimeout(() => {
-                        document.body.classList.add('line-active');
-                        setTimeout(() => {
-                            document.body.classList.add('loaded'); 
-                            document.body.classList.remove('locked'); 
-                            setTimeout(() => { 
-                                bootScreen.style.display = 'none'; 
-                                document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
-                            }, 1000);
-                        }, 300);
-                    }, 100); 
-                }, 1500); 
+                    // 動畫結束後徹底移除 DOM
+                    setTimeout(() => { 
+                        bootScreen.style.display = 'none'; 
+                        document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
+                    }, 800);
+                }, 200); 
             }, 300);
         }
     }
     typeLine();
-
-    // 雙重保險
-    setTimeout(() => {
-        if(document.getElementById('boot-screen') && document.getElementById('boot-screen').style.display !== 'none') {
-            document.body.classList.add('loaded');
-            document.body.classList.remove('locked');
-            document.getElementById('boot-screen').style.display = 'none';
-            document.querySelectorAll('.shutter-gate').forEach(el => el.style.display = 'none');
-        }
-    }, 5000);
 }
 
 function initCursor() {

@@ -318,10 +318,28 @@ body.loaded .shutter-bottom { transform: translateY(100%); }
     .team-section { opacity: 1; transform: none; }
 }
 
-/* 🌟 V32.0 緊急修復 (保險機制) */
-@keyframes force-open-top { 0%, 70% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
-@keyframes force-open-bottom { 0%, 70% { transform: translateY(0); } 100% { transform: translateY(100%); } }
-@keyframes force-hide-overlay { 0%, 80% { opacity: 1; z-index: 10000; } 100% { opacity: 0; z-index: -1; } }
+/* 修改過渡時間，讓開門更噴發感 */
+.shutter-gate {
+    position: fixed; left: 0; width: 100%; height: 50vh;
+    background: #050505; z-index: 10001;
+    /* 改用 ease-in 更有衝力 */
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+}
 
-.shutter-top { animation: force-open-top 4s cubic-bezier(0.7, 0, 0.3, 1) forwards; }
-.shutter-bottom { animation: force-open-bottom 4s cubic-bezier(0.7, 0, 0.3, 1) forwards; }
+/* 移除 css 動畫，改由 js 控制的 loaded class 處理 */
+.shutter-top { 
+    top: 0; 
+    border-bottom: 2px solid transparent; 
+    transform-origin: top; 
+}
+.shutter-bottom { 
+    bottom: 0; 
+    border-top: 2px solid transparent; 
+    transform-origin: bottom; 
+}
+
+/* 亮線顏色 */
+body.line-active .shutter-top { border-bottom-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); }
+body.line-active .shutter-bottom { border-top-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); }
+
+/* 刪除原本底部的 @keyframes force-open-top 等相關代碼 */
