@@ -67,38 +67,45 @@
             <form id="rankingForm">
                 
                 <div class="form-group">
-                    <label>AGENT NAME (帳號名稱)</label>
+                    <label>帳號名稱</label>
                     <input type="text" name="entry.name" placeholder="輸入遊戲ID..." required>
                 </div>
-
+        
                 <div class="form-group">
-                    <label>POWER LEVEL (力量排名分數)</label>
+                    <label>力量排名分數</label>
                     <input type="number" name="entry.score" placeholder="例如: 1200" required>
                 </div>
-
+        
                 <div class="form-group">
-                    <label>SQUAD (所屬分團)</label>
+                    <label>目前所待的俱樂部</label>
                     <select name="entry.team">
                         <option value="一團">一團 | 大陰帝國</option>
                         <option value="二團">二團 | 稽查菊</option>
                         <option value="三團">三團 | 手入與支出</option>
                         <option value="四團">四團 | 抽查桃稅</option>
                         <option value="五團">五團 | 天龍特攻隊</option>
-                        <option value="未定/新血" selected>未定 / 新進人員</option>
+                        <option value="其他">在其他俱樂部</option>
                     </select>
                 </div>
-
+        
                 <div class="form-group">
-                    <label>NOTE (備註：如自願降團/新血)</label>
-                    <input type="text" name="entry.note" placeholder="選填...">
+                    <label>Line 名稱</label>
+                    <input type="text" name="entry.line_name" placeholder="輸入您的 Line 暱稱..." required>
                 </div>
-
+        
+                <div class="form-group">
+                    <label>截圖上傳 (證明用)</label>
+                    <input type="file" id="file-upload" accept="image/*" style="padding: 10px; background: rgba(0,0,0,0.3);">
+                    <input type="hidden" name="entry.image_base64">
+                    <input type="hidden" name="entry.image_mime">
+                </div>
+        
                 <div class="form-group honeypot" aria-hidden="true">
                     <label for="hp-field">機器人檢查</label>
                     <input type="text" id="hp-field" name="hp_check" tabindex="-1" autocomplete="off">
                 </div>
-
-                <button type="submit" class="submit-btn">UPLOAD DATA (上傳數據)</button>
+        
+                <button type="submit" class="submit-btn">上傳數據</button>
                 <div id="form-status" class="status-text">狀態：等待輸入...</div>
             </form>
         </section>

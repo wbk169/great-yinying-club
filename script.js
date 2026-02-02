@@ -237,29 +237,86 @@ function renderRow(container, player, rank) {
 }
 
 // 表單監聽
+// script.js - 替換原本的 initRankingFormSubmission
 function initRankingFormSubmission() {
     const form = document.getElementById('rankingForm');
     const statusText = document.getElementById('form-status');
+    const fileInput = document.getElementById('file-upload');
+    
     if (!form) return;
+
     form.addEventListener('submit', async function(e) {
         e.preventDefault(); 
+        
         const submitBtn = form.querySelector('.submit-btn');
         const originalText = submitBtn.innerText;
-        submitBtn.disabled = true; submitBtn.style.opacity = '0.5'; submitBtn.innerText = "TRANSMITTING... (傳輸中)";
-        statusText.style.color = 'var(--neon-cyan)'; statusText.textContent = '狀態：正在建立加密連線...';
-        const formData = new FormData(form);
-        try {
-            await fetch(API_ENDPOINT, { method: 'POST', body: formData, mode: 'no-cors' });
-            statusText.style.color = 'var(--neon-green)'; statusText.textContent = '狀態：上傳成功！[UPLOAD COMPLETE]';
-            submitBtn.innerText = "SUCCESS";
-            setTimeout(() => {
-                form.reset(); statusText.textContent = '狀態：等待輸入...'; statusText.style.color = '#888';
-                submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.innerText = originalText;
-            }, 2000);
-        } catch (error) {
-            console.error('Submission Error:', error);
-            statusText.style.color = 'var(--neon-red)'; statusText.textContent = '狀態：連線失敗 [CONNECTION FAILED]';
-            submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.innerText = originalText;
+        
+        // 鎖定按鈕
+        submitBtn.disabled = true; 
+        submitBtn.style.opacity = '0.5'; 
+        submitBtn.innerText = "處理圖片中...";
+        statusText.style.color = 'var(--neon-cyan)'; 
+        statusText.textContent = '狀態：正在處理圖片...';
+
+        // 定義發送函式
+        const sendData = async () => {
+            submitBtn.innerText = "傳輸資料中...";
+            statusText.textContent = '狀態：正在建立加密連線...';
+            
+            const formData = new FormData(form);
+            
+            try {
+                await fetch(API_ENDPOINT, { method: 'POST', body: formData, mode: 'no-cors' });
+                
+                // 成功
+                statusText.style.color = 'var(--neon-green)'; 
+                statusText.textContent = '狀態：上傳成功！';
+                submitBtn.innerText = "SUCCESS";
+                
+                setTimeout(() => {
+                    form.reset(); 
+                    statusText.textContent = '狀態：等待輸入...'; 
+                    statusText.style.color = '#888';
+                    submitBtn.disabled = false; 
+                    submitBtn.style.opacity = '1'; 
+                    submitBtn.innerText = originalText;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Submission Error:', error);
+                statusText.style.color = 'var(--neon-red)'; 
+                statusText.textContent = '狀態：連線失敗';
+                submitBtn.disabled = false; 
+                submitBtn.style.opacity = '1'; 
+                submitBtn.innerText = originalText;
+            }
+        };
+
+        // 檢查是否有圖片
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const result = e.target.result; // 格式如 data:image/png;base64,.....
+                
+                // 分割字串，取出真正的 base64 編碼
+                const splitIndex = result.indexOf(',');
+                const meta = result.substring(0, splitIndex); // 例如 data:image/jpeg;base64
+                const base64Content = result.substring(splitIndex + 1);
+                
+                // 填入隱藏欄位
+                form.querySelector('input[name="entry.image_base64"]').value = base64Content;
+                form.querySelector('input[name="entry.image_mime"]').value = meta.match(/:(.*?);/)[1]; // 抓取 image/jpeg
+                
+                // 圖片處理完畢，發送
+                sendData();
+            };
+            
+            reader.readAsDataURL(file);
+        } else {
+            // 沒選圖片，直接發送
+            sendData();
         }
     });
 }
